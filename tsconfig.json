@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "lib": ["es6", "dom", "es2017"],
+        "target": "es6",
+        "sourceMap": true,
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
+        "removeComments": true,
+        "outFile": "build/app.js",
+        "noEmitOnError": true
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "**/*.spec.ts"
+    ]
+}
