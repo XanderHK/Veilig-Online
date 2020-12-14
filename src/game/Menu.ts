@@ -59,8 +59,9 @@ class Menu {
                 event.clientY <= 0 + this.activeSpeaker.height
             ) {
                 this.audio = (this.audio === true ? false : true);
+
             }
-        })
+        });
     }
 
     // TODO: @ronnie position the menu items

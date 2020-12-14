@@ -120,18 +120,9 @@ class View extends Level {
     }
 }
 class ClickHandler {
-    constructor(objects) {
-        this.clickableObjects = [];
-        this.clickableObjects = objects;
-        window.addEventListener("click", this.clickAction);
-    }
-    clickAction(event) {
-        Array.from(this.clickableObjects).forEach((instance, index) => {
-            if (event.clientX >= instance.xPos &&
-                event.clientX < instance.xPos + instance.image.width &&
-                event.clientY >= instance.yPos &&
-                event.clientY <= instance.yPos + instance.image.height) {
-            }
+    static click(instance, method, measurements) {
+        window.addEventListener("click", (event) => {
+            instance[method]();
         });
     }
 }
