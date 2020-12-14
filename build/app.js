@@ -104,8 +104,6 @@ class Menu {
         let speaker = this.activeSpeaker;
         if (!this.audio)
             speaker = this.inacitveSpeaker;
-        this.ctx.fillStyle = "white";
-        this.ctx.fillRect(0, 0, speaker.width, speaker.height);
         this.ctx.drawImage(speaker, 0, 0, speaker.width, speaker.height);
     }
     drawBackGround() {
