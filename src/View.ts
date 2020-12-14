@@ -1,3 +1,0 @@
-class View extends Level {
-
-}
