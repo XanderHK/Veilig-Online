@@ -47,7 +47,7 @@ class Menu {
         });
         const levels: HTMLImageElement[] = Array(Game.AMOUNT_OF_LEVELS).fill(null).map((e, i) => {
             // Images start with 1 index at 0 
-            return new CreateImage(Game.IMG_PATH + `level${i + 1}.png`).createImage(25, 50);
+            return new CreateImage(Game.IMG_PATH + `level${i + 1}.png`).createImage();
         });
 
         const allInitImages = { background: earth, activeSpeaker: activeSpeaker, inactiveSpeaker: inactiveSpeaker, playerImages: playerImages, backgroundFrames: backgroundFrames, levels: levels };
@@ -115,31 +115,29 @@ class Menu {
         }
         const next = this.currentPlayerImgIndex.state;
         const levelObjHeight = this.findImage("levels")[0];
-        const playerPos = this.height / 10 * 2 + levelObjHeight.height;
-        this.player.yPos = playerPos - this.player.getSprite(next).height / 2
+        const playerPos = this.height / 10 * 3 + levelObjHeight.height;
+        this.player.yPos = playerPos - this.player.getSprite(next).height
         this.player.draw(this.ctx, next)
         this.currentPlayerImgIndex.frame++;
     }
 
     private movePlayer() {
         const levels = this.findImage("levels")
-        const lastLevel = levels[levels.length - 1].width;
-        const maxBound = this.width / 2 - 425 + 600 + lastLevel;
+        // const lastLevel = levels[levels.length - 1].width;
+        const maxBound = this.width / 2 - 425 + 600;
         const minBound = this.width / 2 - 425;
+        console.log(this.player.xPos)
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && this.canJump && this.player.xPos <= maxBound) {
             this.canJump = false;
             this.player.xPos = this.player.xPos + 300;
 
         }
-        if (!this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && !this.canJump) {
-            this.canJump = true;
-        }
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && this.canJump && this.player.xPos >= minBound) {
             this.canJump = false;
-            this.player.xPos = this.player.xPos - 300;
+            this.player.xPos = this.player.xPos - 300
 
         }
-        if (!this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && !this.canJump) {
+        if (!this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && !this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && !this.canJump) {
             this.canJump = true;
         }
     }
@@ -149,8 +147,9 @@ class Menu {
      */
     private drawMenuItems() {
         this.findImage("levels").reduce((result, current) => {
-            this.ctx.drawImage(current, result, this.height / 10 * 2)
-            result += 300;
+            this.ctx.drawImage(current, result, this.height / 10 * 2.5)
+            console.log(current.width);
+            result += current.width;
             return result;
         }, this.width / 2 - 425);
     }
