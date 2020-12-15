@@ -1,3 +1,5 @@
 body{
     overflow: hidden;
+    overflow: -moz-hidden-unscrollable;   
+    margin:0;
 }
