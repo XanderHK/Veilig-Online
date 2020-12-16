@@ -125,7 +125,7 @@ class Menu {
         }
         const next = this.currentPlayerImgIndex.state;
         const levelObjHeight = this.menuItems[0].getSprites(0).height;
-        const playerPos = this.height / 10 * 3 + levelObjHeight;
+        const playerPos = this.height / 10 * 2.3 + levelObjHeight;
         this.player.yPos = playerPos - this.player.getSprites(next).height
         this.player.draw(this.ctx, next)
     }
