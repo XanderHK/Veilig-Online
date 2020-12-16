@@ -27,10 +27,24 @@ Game.IMG_PATH = "./assets/img/";
 Game.AUDIO_PATH = "./assets/audio/";
 Game.AMOUNT_OF_LEVELS = 3;
 class GameEntity {
-    constructor(x, y, velocity = 0) {
+    constructor(x, y, velocity = 0, sprites, dimensions) {
+        this._sprites = [];
         this._xPos = x;
         this._yPos = y;
         this._velocity = velocity;
+        if (Array.isArray(sprites)) {
+            for (let i = 0; i < sprites.length; i++) {
+                const image = this.createImage(sprites[i], dimensions.width, dimensions.height);
+                this._sprites.push(image);
+            }
+        }
+        else {
+            const image = this.createImage(sprites, dimensions.width, dimensions.height);
+            this._sprites.push(image);
+        }
+    }
+    getSprites(index) {
+        return this._sprites[index];
     }
     get velocity() {
         return this._velocity;
@@ -50,15 +64,28 @@ class GameEntity {
     set xPos(x) {
         this._xPos = x;
     }
+    createImage(src, width, height) {
+        const image = document.createElement("img");
+        image.src = src;
+        if (width !== undefined) {
+            image.width = width;
+        }
+        if (height !== undefined) {
+            image.height = height;
+        }
+        return image;
+    }
 }
 class Level {
 }
 class Menu {
     constructor(ctx, width, height) {
         this.audio = true;
-        this.currentPlayerImgIndex = { state: 0, frame: 0 };
+        this.currentPlayerImgIndex = { state: 0 };
         this.allImages = [];
         this.canJump = true;
+        this.frames = 0;
+        this.menuItems = [];
         this.width = width;
         this.height = height;
         this.ctx = ctx;
@@ -66,25 +93,23 @@ class Menu {
         this.backgroundAudio.loop = true;
         this.initializeImages();
         this.keyboardListener = new KeyboardListener();
-        this.player = new Player(0, 0, 0);
-        const levelObjHeight = this.findImage("levels")[0];
-        const xpos = (this.width / 2 - 425) + (levelObjHeight.width / 2);
-        this.player.xPos = xpos;
+        this.player = new Player(this.width / 2 - 425, 0, 0);
     }
     initializeImages() {
-        const earth = new CreateImage(Menu.MENU_BACKGROUND).createImage(300, 300);
-        const activeSpeaker = new CreateImage(Game.IMG_PATH + "not-muted.png").createImage(50, 50);
-        const inactiveSpeaker = new CreateImage(Game.IMG_PATH + "muted.png").createImage(50, 50);
-        const playerImages = Array(2).fill(null).map((e, i) => {
-            return new CreateImage(Game.IMG_PATH + "player/main_char_" + Number(i + 1) + ".png").createImage();
-        });
+        const earth = CreateImage.createImage(Menu.MENU_BACKGROUND, 300, 300);
+        const activeSpeaker = CreateImage.createImage(Game.IMG_PATH + "not-muted.png", 50, 50);
+        const inactiveSpeaker = CreateImage.createImage(Game.IMG_PATH + "muted.png", 50, 50);
         const backgroundFrames = Array(Menu.AMOUNT_OF_FRAMES).fill(null).map((e, i) => {
-            return new CreateImage(Game.IMG_PATH + `background/${i}.jpg`).createImage(this.width, this.height);
+            return CreateImage.createImage(Game.IMG_PATH + `background/${i}.jpg`);
         });
-        const levels = Array(Game.AMOUNT_OF_LEVELS).fill(null).map((e, i) => {
-            return new CreateImage(Game.IMG_PATH + `level${i + 1}.png`).createImage();
-        });
-        const allInitImages = { background: earth, activeSpeaker: activeSpeaker, inactiveSpeaker: inactiveSpeaker, playerImages: playerImages, backgroundFrames: backgroundFrames, levels: levels };
+        Array(Game.AMOUNT_OF_LEVELS).fill(null).reduce((result, menuItem, i) => {
+            const instance = new MenuItem(result, this.height / 10 * 2.5, i);
+            this.menuItems.push(instance);
+            result += instance.getSprites(0).width;
+            console.log(result);
+            return result;
+        }, this.width / 2 - 425);
+        const allInitImages = { background: earth, activeSpeaker: activeSpeaker, inactiveSpeaker: inactiveSpeaker, backgroundFrames: backgroundFrames };
         Object.entries(allInitImages).forEach((e) => {
             let images = e[1];
             if (!Array.isArray(e[1])) {
@@ -93,7 +118,7 @@ class Menu {
             this.allImages.push({ name: e[0], images: images });
         });
         const initialFrame = this.findImage("backgroundFrames")[0];
-        this.backgroundFrame = { index: 0, frame: initialFrame };
+        this.backgroundFrame = { frame: initialFrame };
     }
     backGroundAudio() {
         if (this.audio) {
@@ -120,12 +145,17 @@ class Menu {
                 this.audio = (this.audio === true ? false : true);
             }
         });
+        this.frames++;
     }
     findImage(name) {
         return this.allImages.find((e) => e.name === name).images;
     }
+    nextAnimation(amountOfFrames) {
+        const statement = this.frames % amountOfFrames === 0;
+        return statement;
+    }
     drawPlayer() {
-        if (this.currentPlayerImgIndex.frame % 15 === 0) {
+        if (this.nextAnimation(15)) {
             if (this.currentPlayerImgIndex.state !== 0) {
                 this.currentPlayerImgIndex.state = 0;
             }
@@ -134,36 +164,33 @@ class Menu {
             }
         }
         const next = this.currentPlayerImgIndex.state;
-        const levelObjHeight = this.findImage("levels")[0];
-        const playerPos = this.height / 10 * 3 + levelObjHeight.height;
-        this.player.yPos = playerPos - this.player.getSprite(next).height;
+        const levelObjHeight = this.menuItems[0].getSprites(0).height;
+        const playerPos = this.height / 10 * 3 + levelObjHeight;
+        this.player.yPos = playerPos - this.player.getSprites(next).height;
         this.player.draw(this.ctx, next);
-        this.currentPlayerImgIndex.frame++;
     }
     movePlayer() {
-        const levels = this.findImage("levels");
         const maxBound = this.width / 2 - 425 + 600;
-        const minBound = this.width / 2 - 425;
-        console.log(this.player.xPos);
+        const minBound = this.width / 2 - 425 + 300;
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && this.canJump && this.player.xPos <= maxBound) {
             this.canJump = false;
-            this.player.xPos = this.player.xPos + 300;
+            if (this.player.xPos + 300 <= maxBound)
+                this.player.xPos = this.player.xPos + 300;
         }
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && this.canJump && this.player.xPos >= minBound) {
             this.canJump = false;
-            this.player.xPos = this.player.xPos - 300;
+            if (this.player.xPos + 300 >= minBound)
+                this.player.xPos = this.player.xPos - 300;
         }
         if (!this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && !this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && !this.canJump) {
             this.canJump = true;
         }
     }
     drawMenuItems() {
-        this.findImage("levels").reduce((result, current) => {
-            this.ctx.drawImage(current, result, this.height / 10 * 2.5);
-            console.log(current.width);
-            result += current.width;
-            return result;
-        }, this.width / 2 - 425);
+        console.log(this.menuItems.length);
+        this.menuItems.forEach(menuItem => {
+            menuItem.draw(this.ctx);
+        });
     }
     drawSpeaker() {
         let speaker = this.findImage("activeSpeaker")[0];
@@ -172,7 +199,7 @@ class Menu {
         this.ctx.drawImage(speaker, 0, 0, speaker.width, speaker.height);
     }
     drawBackGround() {
-        if (this.backgroundFrame.index % 3 === 0) {
+        if (this.nextAnimation(3)) {
             const current = this.findImage("backgroundFrames").indexOf(this.backgroundFrame.frame);
             let next = current + 1;
             if (next === Menu.AMOUNT_OF_FRAMES - 1) {
@@ -183,28 +210,43 @@ class Menu {
         const background = this.findImage("background")[0];
         this.ctx.drawImage(this.backgroundFrame.frame, 0, 0, this.width, this.height);
         this.ctx.drawImage(background, (this.width / 2) - (background.width / 2), (this.height / 2) - (background.height / 2), background.width, background.height);
-        this.backgroundFrame.index++;
     }
 }
 Menu.MENU_BACKGROUND = Game.IMG_PATH + "earth.png.png";
 Menu.MENU_MUSIC = Game.AUDIO_PATH + "theme_song_veilig_online_the_game.wav";
 Menu.AMOUNT_OF_FRAMES = 37;
+class MenuItem extends GameEntity {
+    constructor(x, y, imgIndex) {
+        const src = MenuItem.MENU_SPRITES[imgIndex];
+        super(x, y, 0, src, MenuItem.DIMENSIONS);
+    }
+    draw(ctx) {
+        ctx.drawImage(this.getSprites(0), this.xPos, this.yPos);
+    }
+}
+MenuItem.MENU_SPRITES = [Game.IMG_PATH + "level1.png", Game.IMG_PATH + "level2.png", Game.IMG_PATH + "level3.png"];
+MenuItem.DIMENSIONS = { width: 281, height: 75 };
 class Player extends GameEntity {
     constructor(x, y, velocity) {
-        super(x, y, velocity);
-        this.sprites = [];
-        this.sprites = Player.PLAYER_SPRITES.map((e) => {
-            return new CreateImage(e).createImage();
-        });
-    }
-    getSprite(index) {
-        return this.sprites[index];
+        super(x, y, velocity, Player.PLAYER_SPRITES, Player.DIMENSIONS);
     }
     draw(ctx, state) {
-        ctx.drawImage(this.sprites[state], this.xPos, this.yPos);
+        const sprite = this.getSprites(state);
+        ctx.drawImage(sprite, this.xPos, this.yPos);
     }
 }
 Player.PLAYER_SPRITES = [Game.IMG_PATH + `player/main_char_1.png`, Game.IMG_PATH + `player/main_char_2.png`];
+Player.DIMENSIONS = { width: 181, height: 268 };
+class Speaker extends GameEntity {
+    constructor(x, y, velocity, img) {
+        super(x, y, velocity, img, Speaker.DIMENSIONS);
+    }
+    draw(ctx, state) {
+        const sprite = this.getSprites(state);
+        ctx.drawImage(sprite, this.xPos, this.yPos);
+    }
+}
+Speaker.DIMENSIONS = { width: 50, height: 50 };
 class View extends Level {
     constructor() {
         super();
@@ -218,16 +260,13 @@ class ClickHandler {
     }
 }
 class CreateImage {
-    constructor(imgSrc) {
-        this.imgSrc = imgSrc;
-    }
-    createImage(height, width) {
+    static createImage(src, width, height) {
         const image = document.createElement("img");
-        image.src = this.imgSrc;
-        if (height > 0) {
+        image.src = src;
+        if (height !== undefined) {
             image.height = height;
         }
-        if (width > 0) {
+        if (width !== undefined) {
             image.width = width;
         }
         return image;
