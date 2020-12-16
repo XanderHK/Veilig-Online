@@ -48,7 +48,7 @@ class Menu {
             result += instance.getSprites(0).width;
             console.log(result);
             return result;
-        }, this.width / 2 - 425);
+        }, this.width / 2 - 200);
 
         const allInitImages = { background: earth, activeSpeaker: activeSpeaker, inactiveSpeaker: inactiveSpeaker, backgroundFrames: backgroundFrames };
         Object.entries(allInitImages).forEach((e) => {
