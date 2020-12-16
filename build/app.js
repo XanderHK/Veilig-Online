@@ -68,7 +68,7 @@ class Menu {
         this.keyboardListener = new KeyboardListener();
         this.player = new Player(0, 0, 0);
         const levelObjHeight = this.findImage("levels")[0];
-        const xpos = (this.width / 2 - 425) + (levelObjHeight.width / 2);
+        const xpos = (this.width / 2 - 180) + (levelObjHeight.width / 2);
         this.player.xPos = xpos;
     }
     initializeImages() {
@@ -135,7 +135,7 @@ class Menu {
         }
         const next = this.currentPlayerImgIndex.state;
         const levelObjHeight = this.findImage("levels")[0];
-        const playerPos = this.height / 10 * 1.5 + levelObjHeight.height;
+        const playerPos = this.height / 10 * 2.3 + levelObjHeight.height;
         this.player.yPos = playerPos - this.player.getSprite(next).height;
         this.player.draw(this.ctx, next);
         this.currentPlayerImgIndex.frame++;
@@ -159,11 +159,11 @@ class Menu {
     }
     drawMenuItems() {
         this.findImage("levels").reduce((result, current) => {
-            this.ctx.drawImage(current, result, this.height / 10 * 2.5);
+            this.ctx.drawImage(current, result, this.height / 10 * 2.8);
             console.log(current.width);
             result += current.width;
             return result;
-        }, this.width / 2 - 425);
+        }, this.width / 2 - 200);
     }
     drawSpeaker() {
         let speaker = this.findImage("activeSpeaker")[0];
