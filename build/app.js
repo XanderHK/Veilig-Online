@@ -27,23 +27,42 @@ Game.IMG_PATH = "./assets/img/";
 Game.AUDIO_PATH = "./assets/audio/";
 Game.AMOUNT_OF_LEVELS = 3;
 class GameEntity {
-    constructor(x, y, velocity = 0, sprites, dimensions) {
+    constructor(x, y, velocity = 0, sprites) {
         this._sprites = [];
+        this._spritesWidth = [];
+        this._spritesHeight = [];
         this._xPos = x;
         this._yPos = y;
         this._velocity = velocity;
         if (Array.isArray(sprites)) {
             for (let i = 0; i < sprites.length; i++) {
-                const image = this.createImage(sprites[i], dimensions.width, dimensions.height);
+                const image = this.createImage(sprites[i]);
+                image.addEventListener("load", () => {
+                    this._spritesWidth.push(image.width);
+                    this._spritesHeight.push(image.height);
+                });
                 this._sprites.push(image);
             }
         }
         else {
-            const image = this.createImage(sprites, dimensions.width, dimensions.height);
+            const image = this.createImage(sprites);
+            image.addEventListener("load", () => {
+                this._spritesWidth.push(image.width);
+                this._spritesHeight.push(image.height);
+            });
             this._sprites.push(image);
         }
     }
+    getWidth(index = 0) {
+        return this._spritesWidth[index];
+    }
+    getHeight(index = 0) {
+        return this._spritesHeight[index];
+    }
     getSprites(index) {
+        if (index === undefined) {
+            index = 0;
+        }
         return this._sprites[index];
     }
     get velocity() {
@@ -80,12 +99,13 @@ class Level {
 }
 class Menu {
     constructor(ctx, width, height) {
-        this.audio = true;
-        this.currentPlayerImgIndex = { state: 0 };
         this.allImages = [];
-        this.canJump = true;
-        this.frames = 0;
         this.menuItems = [];
+        this.currentPlayerImgIndex = { state: 0 };
+        this.audio = true;
+        this.canJumpRight = true;
+        this.canJumpLeft = true;
+        this.frames = 0;
         this.width = width;
         this.height = height;
         this.ctx = ctx;
@@ -93,7 +113,7 @@ class Menu {
         this.backgroundAudio.loop = true;
         this.initializeImages();
         this.keyboardListener = new KeyboardListener();
-        this.player = new Player(this.width / 2 - 425, 0, 0);
+        this.player = new Player(this.width / 3, 0, 0);
     }
     initializeImages() {
         const earth = CreateImage.createImage(Menu.MENU_BACKGROUND, 300, 300);
@@ -102,13 +122,6 @@ class Menu {
         const backgroundFrames = Array(Menu.AMOUNT_OF_FRAMES).fill(null).map((e, i) => {
             return CreateImage.createImage(Game.IMG_PATH + `background/${i}.jpg`);
         });
-        Array(Game.AMOUNT_OF_LEVELS).fill(null).reduce((result, menuItem, i) => {
-            const instance = new MenuItem(result, this.height / 10 * 2.5, i);
-            this.menuItems.push(instance);
-            result += instance.getSprites(0).width;
-            console.log(result);
-            return result;
-        }, this.width / 2 - 425);
         const allInitImages = { background: earth, activeSpeaker: activeSpeaker, inactiveSpeaker: inactiveSpeaker, backgroundFrames: backgroundFrames };
         Object.entries(allInitImages).forEach((e) => {
             let images = e[1];
@@ -116,6 +129,14 @@ class Menu {
                 images = [e[1]];
             }
             this.allImages.push({ name: e[0], images: images });
+        });
+        this.menuItems = Array(Game.AMOUNT_OF_LEVELS).fill(null).map((e, i) => {
+            const instance = new MenuItem(0, this.height / 10 * 2.5, i);
+            const image = instance.getSprites(0);
+            image.addEventListener("load", () => {
+                instance.xPos = this.width / 3 + (image.width * 2) * i;
+            });
+            return instance;
         });
         const initialFrame = this.findImage("backgroundFrames")[0];
         this.backgroundFrame = { frame: initialFrame };
@@ -128,24 +149,6 @@ class Menu {
             this.backgroundAudio.pause();
             this.backgroundAudio.currentTime = 0;
         }
-    }
-    drawMenu() {
-        this.drawBackGround();
-        this.drawMenuItems();
-        this.backGroundAudio();
-        this.drawSpeaker();
-        this.movePlayer();
-        this.drawPlayer();
-        window.addEventListener("click", event => {
-            const referenceImg = this.findImage("activeSpeaker")[0];
-            if (event.clientX >= 0 &&
-                event.clientX < 0 + referenceImg.width &&
-                event.clientY >= 0 &&
-                event.clientY <= 0 + referenceImg.height) {
-                this.audio = (this.audio === true ? false : true);
-            }
-        });
-        this.frames++;
     }
     findImage(name) {
         return this.allImages.find((e) => e.name === name).images;
@@ -164,30 +167,36 @@ class Menu {
             }
         }
         const next = this.currentPlayerImgIndex.state;
-        const levelObjHeight = this.menuItems[0].getSprites(0).height;
-        const playerPos = this.height / 10 * 3 + levelObjHeight;
+        const levelObjHeight = this.menuItems[0].getSprites().height;
+        const playerPos = this.height / 10 * 2.3 + levelObjHeight;
         this.player.yPos = playerPos - this.player.getSprites(next).height;
         this.player.draw(this.ctx, next);
     }
     movePlayer() {
-        const maxBound = this.width / 2 - 425 + 600;
-        const minBound = this.width / 2 - 425 + 300;
-        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && this.canJump && this.player.xPos <= maxBound) {
-            this.canJump = false;
-            if (this.player.xPos + 300 <= maxBound)
-                this.player.xPos = this.player.xPos + 300;
+        const maxBound = this.menuItems[this.menuItems.length - 1].xPos;
+        const minBound = this.menuItems[0].xPos;
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && this.canJumpRight && this.player.xPos <= maxBound) {
+            this.canJumpRight = false;
+            const nextXPos = this.player.xPos + (this.menuItems[0].getSprites(0).width * 2);
+            if (nextXPos <= maxBound) {
+                this.player.xPos = nextXPos;
+            }
         }
-        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && this.canJump && this.player.xPos >= minBound) {
-            this.canJump = false;
-            if (this.player.xPos + 300 >= minBound)
-                this.player.xPos = this.player.xPos - 300;
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && this.canJumpLeft && this.player.xPos >= minBound) {
+            this.canJumpLeft = false;
+            const nextXPos = this.player.xPos - this.menuItems[0].getSprites(0).width * 2;
+            if (nextXPos >= minBound) {
+                this.player.xPos = nextXPos;
+            }
         }
-        if (!this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && !this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && !this.canJump) {
-            this.canJump = true;
+        if (!this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && !this.canJumpLeft) {
+            this.canJumpLeft = true;
+        }
+        if (!this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && !this.canJumpRight) {
+            this.canJumpRight = true;
         }
     }
     drawMenuItems() {
-        console.log(this.menuItems.length);
         this.menuItems.forEach(menuItem => {
             menuItem.draw(this.ctx);
         });
@@ -211,6 +220,35 @@ class Menu {
         this.ctx.drawImage(this.backgroundFrame.frame, 0, 0, this.width, this.height);
         this.ctx.drawImage(background, (this.width / 2) - (background.width / 2), (this.height / 2) - (background.height / 2), background.width, background.height);
     }
+    interactsWithLevel() {
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_SPACE)) {
+            this.menuItems.forEach((menuItem) => {
+                const playerPos = this.player.xPos + this.player.getWidth();
+                if (playerPos >= menuItem.xPos && playerPos <= menuItem.xPos + menuItem.getWidth()) {
+                    console.log(menuItem.getSprites());
+                }
+            });
+        }
+    }
+    drawMenu() {
+        this.drawBackGround();
+        this.drawMenuItems();
+        this.backGroundAudio();
+        this.drawSpeaker();
+        this.movePlayer();
+        this.drawPlayer();
+        this.interactsWithLevel();
+        window.addEventListener("click", event => {
+            const referenceImg = this.findImage("activeSpeaker")[0];
+            if (event.clientX >= 0 &&
+                event.clientX < 0 + referenceImg.width &&
+                event.clientY >= 0 &&
+                event.clientY <= 0 + referenceImg.height) {
+                this.audio = (this.audio === true ? false : true);
+            }
+        });
+        this.frames++;
+    }
 }
 Menu.MENU_BACKGROUND = Game.IMG_PATH + "earth.png.png";
 Menu.MENU_MUSIC = Game.AUDIO_PATH + "theme_song_veilig_online_the_game.wav";
@@ -218,17 +256,16 @@ Menu.AMOUNT_OF_FRAMES = 37;
 class MenuItem extends GameEntity {
     constructor(x, y, imgIndex) {
         const src = MenuItem.MENU_SPRITES[imgIndex];
-        super(x, y, 0, src, MenuItem.DIMENSIONS);
+        super(x, y, 0, src);
     }
     draw(ctx) {
         ctx.drawImage(this.getSprites(0), this.xPos, this.yPos);
     }
 }
 MenuItem.MENU_SPRITES = [Game.IMG_PATH + "level1.png", Game.IMG_PATH + "level2.png", Game.IMG_PATH + "level3.png"];
-MenuItem.DIMENSIONS = { width: 281, height: 75 };
 class Player extends GameEntity {
     constructor(x, y, velocity) {
-        super(x, y, velocity, Player.PLAYER_SPRITES, Player.DIMENSIONS);
+        super(x, y, velocity, Player.PLAYER_SPRITES);
     }
     draw(ctx, state) {
         const sprite = this.getSprites(state);
@@ -236,17 +273,15 @@ class Player extends GameEntity {
     }
 }
 Player.PLAYER_SPRITES = [Game.IMG_PATH + `player/main_char_1.png`, Game.IMG_PATH + `player/main_char_2.png`];
-Player.DIMENSIONS = { width: 181, height: 268 };
 class Speaker extends GameEntity {
     constructor(x, y, velocity, img) {
-        super(x, y, velocity, img, Speaker.DIMENSIONS);
+        super(x, y, velocity, img);
     }
     draw(ctx, state) {
         const sprite = this.getSprites(state);
         ctx.drawImage(sprite, this.xPos, this.yPos);
     }
 }
-Speaker.DIMENSIONS = { width: 50, height: 50 };
 class View extends Level {
     constructor() {
         super();

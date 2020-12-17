@@ -1,9 +1,8 @@
 class Speaker extends GameEntity {
 
-    public static readonly DIMENSIONS = { width: 50, height: 50 };
 
     public constructor(x: number, y: number, velocity: number, img: string) {
-        super(x, y, velocity, img, Speaker.DIMENSIONS);
+        super(x, y, velocity, img);
     }
 
     public draw(ctx: CanvasRenderingContext2D, state: number) {

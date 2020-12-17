@@ -4,6 +4,8 @@ abstract class GameEntity {
     private _yPos: number;
     private _velocity: number;
     private _sprites: HTMLImageElement[] = [];
+    private _spritesWidth: number[] = [];
+    private _spritesHeight: number[] = [];
 
     /**
      * constructor of the GameItem class this will always be invoked through super in a subclass
@@ -11,22 +13,53 @@ abstract class GameEntity {
      * @param {number} y 
      * @param {number} velocity 
      */
-    public constructor(x: number, y: number, velocity: number = 0, sprites: string[] | string, dimensions: { width: number, height: number }) {
+    public constructor(x: number, y: number, velocity: number = 0, sprites: string[] | string) {
         this._xPos = x;
         this._yPos = y;
         this._velocity = velocity;
         if (Array.isArray(sprites)) {
             for (let i = 0; i < sprites.length; i++) {
-                const image = this.createImage(sprites[i], dimensions.width, dimensions.height);
+                const image = this.createImage(sprites[i]);
+                image.addEventListener("load", () => {
+                    this._spritesWidth.push(image.width);
+                    this._spritesHeight.push(image.height)
+                })
                 this._sprites.push(image);
             }
         } else {
-            const image = this.createImage(sprites, dimensions.width, dimensions.height);
+            const image = this.createImage(sprites);
+            image.addEventListener("load", () => {
+                this._spritesWidth.push(image.width);
+                this._spritesHeight.push(image.height)
+            })
             this._sprites.push(image);
         }
     }
 
-    public getSprites(index: number): HTMLImageElement {
+    /**
+     * Gets the width of a sprite
+     * @param {number} index 
+     */
+    public getWidth(index: number = 0): number {
+        return this._spritesWidth[index];
+    }
+
+    /**
+    * Gets the height of a sprite
+    * @param {number} index
+    */
+    public getHeight(index: number = 0): number {
+        return this._spritesHeight[index];
+    }
+
+    /**
+     * Gets a sprite of the current object
+     * @param {number} index 
+     */
+    public getSprites(index?: number): HTMLImageElement {
+        if (index === undefined) {
+            index = 0;
+        }
         return this._sprites[index];
     }
 
