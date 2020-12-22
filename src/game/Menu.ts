@@ -1,23 +1,23 @@
 /// <reference path="Game.ts"/>
 class Menu {
-
-    public static readonly MENU_BACKGROUND = Game.IMG_PATH + "earth.png.png";
     public static readonly MENU_MUSIC = Game.AUDIO_PATH + "theme_song_veilig_online_the_game.wav";
     public static readonly AMOUNT_OF_FRAMES = 37;
 
     private ctx: CanvasRenderingContext2D;
-    private backgroundAudio: HTMLAudioElement;
-    private backgroundFrame: { frame: HTMLImageElement };
-    private allImages: { name: string, images: HTMLImageElement[] }[] = []
     private keyboardListener: KeyboardListener;
     private player: Player;
     private menuItems: MenuItem[] = [];
+    private speakers: Speaker[] = [];
+    private repo: ImageLoader;
+
+    private backgroundFrame: { frame: HTMLImageElement, key: string };
+    private backgroundAudio: HTMLAudioElement;
     private currentPlayerImgIndex: { state: number } = { state: 0 };
+    private canJump: { right: boolean, left: boolean } = { right: true, left: true }
+
     private width: number;
     private height: number;
     private audio: boolean = true;
-    private canJumpRight: boolean = true;
-    private canJumpLeft: boolean = true;
     private frames: number = 0;
 
     /**
@@ -26,57 +26,42 @@ class Menu {
      * @param {number} width 
      * @param {number} height 
      */
-    public constructor(ctx: CanvasRenderingContext2D, width: number, height: number) {
+    public constructor(ctx: CanvasRenderingContext2D, width: number, height: number, repo: ImageLoader) {
         this.width = width;
         this.height = height;
         this.ctx = ctx;
         this.backgroundAudio = new Audio(Menu.MENU_MUSIC);
         this.backgroundAudio.loop = true;
+        this.repo = repo;
+
         this.initializeImages();
         this.keyboardListener = new KeyboardListener();
-        this.player = new Player(this.width / 3, 0, 0);
+        const playerSprites: HTMLImageElement[] = Player.PLAYER_SPRITES.map((key: string) => this.repo.getImage(key))
+        console.log(playerSprites);
+        this.player = new Player(this.width / 3, 0, 0, playerSprites);
     }
+
+
 
     /**
      * Method for creating all the sprites that will be used by this class
      */
     private initializeImages() {
-        /**
-         * Todo add the load event to each iamge and update the x and y pos
-         * Remove all these consts and the allImages property and delegate to their own class so we can track the x and y positions more easily
-         * 
-         * Todo bundle all objects together and make one method to draw all of them
-         */
-        const earth: HTMLImageElement = CreateImage.createImage(Menu.MENU_BACKGROUND, 300, 300);
-        const activeSpeaker: HTMLImageElement = CreateImage.createImage(Game.IMG_PATH + "not-muted.png", 50, 50);
-        const inactiveSpeaker: HTMLImageElement = CreateImage.createImage(Game.IMG_PATH + "muted.png", 50, 50);
-        const backgroundFrames: HTMLImageElement[] = Array(Menu.AMOUNT_OF_FRAMES).fill(null).map((e, i) => {
-            return CreateImage.createImage(Game.IMG_PATH + `background/${i}.jpg`);
-        });
-
-        const allInitImages = { background: earth, activeSpeaker: activeSpeaker, inactiveSpeaker: inactiveSpeaker, backgroundFrames: backgroundFrames };
-        Object.entries(allInitImages).forEach((e) => {
-            let images = e[1];
-            if (!Array.isArray(e[1])) {
-                images = [e[1]];
-            }
-            this.allImages.push({ name: e[0], images: images as HTMLImageElement[] });
+        this.speakers = [...Speaker.SPEAKER_SPRITES].map((key: string) => {
+            const image = this.repo.getImage(key);
+            image.width = 50;
+            image.height = 50;
+            return new Speaker(0, 0, 0, image)
         });
 
         this.menuItems = Array(Game.AMOUNT_OF_LEVELS).fill(null).map((e, i) => {
-            const instance = new MenuItem(0, this.height / 10 * 2.5, i);
-            // instance.xPos = this.width / 2 - 375 + (instance.width[0] * 2) * i
-            const image = instance.getSprites(0);
-            //Test
-            image.addEventListener("load", () => {
-                instance.xPos = this.width / 3 + (image.width * 2) * i;
-            })
+            const image = this.repo.getImage(`level${i + 1}`);
+            const x = this.width / 3 + (image.width * 2) * i
+            const instance = new MenuItem(x, this.height / 10 * 2.5, image);
             return instance;
         });
 
-
-        const initialFrame = this.findImage("backgroundFrames")[0];
-        this.backgroundFrame = { frame: initialFrame };
+        this.backgroundFrame = { frame: this.repo.getImage("0"), key: "0" };
     }
 
     /**
@@ -89,14 +74,6 @@ class Menu {
             this.backgroundAudio.pause();
             this.backgroundAudio.currentTime = 0;
         }
-    }
-
-    /**
-     *  Method that returns a image 
-     * @param {string} name 
-     */
-    private findImage(name: string) {
-        return this.allImages.find((e) => e.name === name).images
     }
 
     /**
@@ -120,9 +97,9 @@ class Menu {
             }
         }
         const next = this.currentPlayerImgIndex.state;
-        const levelObjHeight = this.menuItems[0].getSprites().height;
+        const levelObjHeight = this.repo.getImage("level1").height;
         const playerPos = this.height / 10 * 2.3 + levelObjHeight;
-        this.player.yPos = playerPos - this.player.getSprites(next).height
+        this.player.yPos = playerPos - this.repo.getImage(`main_char_${next + 1}`).height
         this.player.draw(this.ctx, next)
     }
 
@@ -132,28 +109,28 @@ class Menu {
     private movePlayer() {
         const maxBound = this.menuItems[this.menuItems.length - 1].xPos;
         const minBound = this.menuItems[0].xPos;
-        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && this.canJumpRight && this.player.xPos <= maxBound) {
-            this.canJumpRight = false;
-            const nextXPos = this.player.xPos + (this.menuItems[0].getSprites(0).width * 2);
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && this.canJump.right && this.player.xPos <= maxBound) {
+            this.canJump.right = false;
+            const nextXPos = this.player.xPos + (this.repo.getImage("level1").width * 2);
             if (nextXPos <= maxBound) {
                 this.player.xPos = nextXPos;
             }
         }
 
-        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && this.canJumpLeft && this.player.xPos >= minBound) {
-            this.canJumpLeft = false;
-            const nextXPos = this.player.xPos - this.menuItems[0].getSprites(0).width * 2;
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && this.canJump.left && this.player.xPos >= minBound) {
+            this.canJump.left = false;
+            const nextXPos = this.player.xPos - this.repo.getImage("level1").width * 2;
             if (nextXPos >= minBound) {
                 this.player.xPos = nextXPos;
             }
         }
 
-        if (!this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && !this.canJumpLeft) {
-            this.canJumpLeft = true;
+        if (!this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && !this.canJump.left) {
+            this.canJump.left = true;
         }
 
-        if (!this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && !this.canJumpRight) {
-            this.canJumpRight = true;
+        if (!this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && !this.canJump.right) {
+            this.canJump.right = true;
         }
     }
 
@@ -170,9 +147,8 @@ class Menu {
      * Method for drawing the speaker
      */
     private drawSpeaker() {
-        let speaker: HTMLImageElement = this.findImage("activeSpeaker")[0];
-        if (!this.audio) speaker = this.findImage("inactiveSpeaker")[0];
-        this.ctx.drawImage(speaker, 0, 0, speaker.width, speaker.height)
+        const speakerSpriteIndex = this.audio ? 0 : 1;
+        this.speakers[speakerSpriteIndex].draw(this.ctx);
     }
 
     /**
@@ -180,14 +156,15 @@ class Menu {
      */
     private drawBackGround() {
         if (this.nextAnimation(3)) {
-            const current = this.findImage("backgroundFrames").indexOf(this.backgroundFrame.frame);
-            let next = current + 1;
-            if (next === Menu.AMOUNT_OF_FRAMES - 1) {
-                next = 0;
+            this.backgroundFrame.key = String(Number(this.backgroundFrame.key) + 1);
+            if (Number(this.backgroundFrame.key) >= Menu.AMOUNT_OF_FRAMES) {
+                this.backgroundFrame.key = String(0);
             }
-            this.backgroundFrame.frame = this.findImage("backgroundFrames")[next]
+            this.backgroundFrame.frame = this.repo.getImage(this.backgroundFrame.key);
         }
-        const background = this.findImage("background")[0];
+        const background = this.repo.getImage("earth");
+        background.width = 300;
+        background.height = 300;
         this.ctx.drawImage(this.backgroundFrame.frame, 0, 0, this.width, this.height)
         this.ctx.drawImage(background, (this.width / 2) - (background.width / 2), (this.height / 2) - (background.height / 2), background.width, background.height);
     }
@@ -198,31 +175,21 @@ class Menu {
     public interactsWithLevel() {
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_SPACE)) {
             this.menuItems.forEach((menuItem) => {
-                const playerPos = this.player.xPos + this.player.getWidth()
-                if (playerPos >= menuItem.xPos && playerPos <= menuItem.xPos + menuItem.getWidth()) {
-                    console.log(menuItem.getSprites())
+                const currentPlayerSprite = this.repo.getImage(`main_char_${this.currentPlayerImgIndex.state}`);
+                const playerPos = this.player.xPos + currentPlayerSprite.width
+                if (playerPos >= menuItem.xPos && playerPos <= menuItem.xPos + this.repo.getImage("level1").width) {
+                    // Do do something
                 }
             })
         }
     }
 
-
-    /**
-     * Draws the menu entirely 
-     */
-    public drawMenu() {
-        this.drawBackGround();
-        this.drawMenuItems();
-        this.backGroundAudio();
-        this.drawSpeaker();
-        this.movePlayer();
-        this.drawPlayer();
-        this.interactsWithLevel()
+    private mute() {
         /**
-         * TODO delegate all click events to the clickhandler
-         */
+           * TODO delegate all click events to the clickhandler
+           */
         window.addEventListener("click", event => {
-            const referenceImg = this.findImage("activeSpeaker")[0];
+            const referenceImg = this.repo.getImage("muted")
             if (
                 event.clientX >= 0 &&
                 event.clientX < 0 + referenceImg.width &&
@@ -230,9 +197,23 @@ class Menu {
                 event.clientY <= 0 + referenceImg.height
             ) {
                 this.audio = (this.audio === true ? false : true);
-
             }
         });
+    }
+
+
+    /**
+     * Draws the menu entirely 
+     */
+    public drawMenu() {
+        this.mute();
+        this.drawBackGround();
+        this.drawMenuItems();
+        this.backGroundAudio();
+        this.drawSpeaker();
+        this.movePlayer();
+        this.drawPlayer();
+        this.interactsWithLevel()
         this.frames++;
     }
 }

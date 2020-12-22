@@ -12,9 +12,12 @@ class Game {
     // The canvas context
     private ctx: CanvasRenderingContext2D;
 
-    private gamestate: GameState = GameState.Main;
+    private gamestate: GameState = GameState.Load;
 
-    private views: View[] = [];
+    private repo: ImageLoader;
+    private repoKeys: string[];
+
+    private LevelViews: View[] = [];
 
     private menu: Menu;
 
@@ -24,8 +27,23 @@ class Game {
      */
     public constructor(canvas: HTMLElement) {
         this.initializeCanvas(canvas);
-        this.menu = new Menu(this.ctx, this.canvas.width, this.canvas.height);
+        this.initializeAssets();
         requestAnimationFrame(this.step);
+    }
+
+
+    private initializeAssets() {
+        this.repoKeys = [
+            "earth.png.png",
+            "level1.png",
+            "level2.png",
+            "level3.png",
+            "player/main_char_1.png",
+            "player/main_char_2.png",
+            "muted.png",
+            "not-muted.png"
+        ].concat(Array(37).fill(null).map((e, i) => `background/${i}.jpg`));
+        this.repo = new ImageLoader(this.repoKeys, Game.IMG_PATH);
     }
 
     /**
@@ -47,10 +65,24 @@ class Game {
     step = () => {
         // Clears the canvas
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // Checks if all images have been loaded
+        if (!this.repo.isLoading()) {
+            this.gamestate = GameState.Main;
+            // Checks if the menu attribute has a menu instance
+            if (this.menu === undefined) {
+                this.menu = new Menu(this.ctx, this.canvas.width, this.canvas.height, this.repo)
+            }
+        } else {
+            this.ctx.fillText("Loading...", this.canvas.width / 2, this.canvas.height / 2)
+        }
+
         if (this.gamestate === GameState.Main) {
+            // Overwrites the repoKeys containing the paths to the actual keys
+            this.repoKeys = this.repoKeys.map((path) => path.split("/").pop().split(".").shift())
+            // Draws the menu
             this.menu.drawMenu();
         }
-        // Collision detection method for all the objects
         requestAnimationFrame(this.step);
     }
 }
