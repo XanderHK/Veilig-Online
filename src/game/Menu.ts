@@ -37,7 +37,6 @@ class Menu {
         this.initializeImages();
         this.keyboardListener = new KeyboardListener();
         const playerSprites: HTMLImageElement[] = Player.PLAYER_SPRITES.map((key: string) => this.repo.getImage(key))
-        console.log(playerSprites);
         this.player = new Player(this.width / 3, 0, 0, playerSprites);
     }
 
@@ -49,8 +48,6 @@ class Menu {
     private initializeImages() {
         this.speakers = [...Speaker.SPEAKER_SPRITES].map((key: string) => {
             const image = this.repo.getImage(key);
-            image.width = 50;
-            image.height = 50;
             return new Speaker(0, 0, 0, image)
         });
 
@@ -175,15 +172,19 @@ class Menu {
     public interactsWithLevel() {
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_SPACE)) {
             this.menuItems.forEach((menuItem) => {
-                const currentPlayerSprite = this.repo.getImage(`main_char_${this.currentPlayerImgIndex.state}`);
+                const currentPlayerSprite = this.repo.getImage(`main_char_${this.currentPlayerImgIndex.state + 1}`);
                 const playerPos = this.player.xPos + currentPlayerSprite.width
                 if (playerPos >= menuItem.xPos && playerPos <= menuItem.xPos + this.repo.getImage("level1").width) {
                     // Do do something
+                    console.log("pressed")
                 }
             })
         }
     }
 
+    /**
+     * Mute method
+     */
     private mute() {
         /**
            * TODO delegate all click events to the clickhandler

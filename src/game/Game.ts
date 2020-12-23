@@ -21,6 +21,10 @@ class Game {
 
     private menu: Menu;
 
+    private FPS: number = 0;
+    private ticks: number = 0;
+    private last: number = 0;
+
     /**
      * Constructs the game
      * @param {HTMLElement} canvas 
@@ -31,7 +35,9 @@ class Game {
         requestAnimationFrame(this.step);
     }
 
-
+    /**
+     * passes all the given image paths / keys to the ImageLoader instance that gets initialized in here that wil start the loading process of the images
+     */
     private initializeAssets() {
         this.repoKeys = [
             "earth.png.png",
@@ -40,8 +46,7 @@ class Game {
             "level3.png",
             "player/main_char_1.png",
             "player/main_char_2.png",
-            "muted.png",
-            "not-muted.png"
+            ...Speaker.SPEAKER_SPRITES
         ].concat(Array(37).fill(null).map((e, i) => `background/${i}.jpg`));
         this.repo = new ImageLoader(this.repoKeys, Game.IMG_PATH);
     }
@@ -84,5 +89,14 @@ class Game {
             this.menu.drawMenu();
         }
         requestAnimationFrame(this.step);
+
+        var now = Date.now();
+        if (now - this.last >= 1000) {
+            this.last = now;
+            this.FPS = this.ticks;
+            this.ticks = 0;
+        }
+        this.ticks++;
+        console.log(this.FPS)
     }
 }

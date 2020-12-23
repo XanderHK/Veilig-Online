@@ -5,6 +5,9 @@ class Game {
     constructor(canvas) {
         this.gamestate = GameState.Load;
         this.LevelViews = [];
+        this.FPS = 0;
+        this.ticks = 0;
+        this.last = 0;
         this.step = () => {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
             if (!this.repo.isLoading()) {
@@ -21,6 +24,14 @@ class Game {
                 this.menu.drawMenu();
             }
             requestAnimationFrame(this.step);
+            var now = Date.now();
+            if (now - this.last >= 1000) {
+                this.last = now;
+                this.FPS = this.ticks;
+                this.ticks = 0;
+            }
+            this.ticks++;
+            console.log(this.FPS);
         };
         this.initializeCanvas(canvas);
         this.initializeAssets();
@@ -34,8 +45,7 @@ class Game {
             "level3.png",
             "player/main_char_1.png",
             "player/main_char_2.png",
-            "muted.png",
-            "not-muted.png"
+            ...Speaker.SPEAKER_SPRITES
         ].concat(Array(37).fill(null).map((e, i) => `background/${i}.jpg`));
         this.repo = new ImageLoader(this.repoKeys, Game.IMG_PATH);
     }
@@ -71,14 +81,11 @@ class Menu {
         this.initializeImages();
         this.keyboardListener = new KeyboardListener();
         const playerSprites = Player.PLAYER_SPRITES.map((key) => this.repo.getImage(key));
-        console.log(playerSprites);
         this.player = new Player(this.width / 3, 0, 0, playerSprites);
     }
     initializeImages() {
         this.speakers = [...Speaker.SPEAKER_SPRITES].map((key) => {
             const image = this.repo.getImage(key);
-            image.width = 50;
-            image.height = 50;
             return new Speaker(0, 0, 0, image);
         });
         this.menuItems = Array(Game.AMOUNT_OF_LEVELS).fill(null).map((e, i) => {
@@ -167,9 +174,10 @@ class Menu {
     interactsWithLevel() {
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_SPACE)) {
             this.menuItems.forEach((menuItem) => {
-                const currentPlayerSprite = this.repo.getImage(`main_char_${this.currentPlayerImgIndex.state}`);
+                const currentPlayerSprite = this.repo.getImage(`main_char_${this.currentPlayerImgIndex.state + 1}`);
                 const playerPos = this.player.xPos + currentPlayerSprite.width;
                 if (playerPos >= menuItem.xPos && playerPos <= menuItem.xPos + this.repo.getImage("level1").width) {
+                    console.log("pressed");
                 }
             });
         }
@@ -199,6 +207,8 @@ class Menu {
 }
 Menu.MENU_MUSIC = Game.AUDIO_PATH + "theme_song_veilig_online_the_game.wav";
 Menu.AMOUNT_OF_FRAMES = 37;
+class MenuView {
+}
 class View extends Level {
     constructor() {
         super();

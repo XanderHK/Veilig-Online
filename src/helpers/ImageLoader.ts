@@ -3,6 +3,11 @@ class ImageLoader {
     private images: { key: string, image: HTMLImageElement }[] = [];
     private loadingAssets: string[] = []
 
+    /**
+     * 
+     * @param {string[]} assets 
+     * @param {string} prefix 
+     */
     public constructor(assets: string[], prefix: string) {
         assets.forEach((name: string) => {
             const path = prefix + name;
