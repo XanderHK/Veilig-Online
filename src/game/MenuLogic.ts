@@ -1,24 +1,27 @@
 /// <reference path="Game.ts"/>
-class Menu {
+abstract class MenuLogic {
     public static readonly MENU_MUSIC = Game.AUDIO_PATH + "theme_song_veilig_online_the_game.wav";
     public static readonly AMOUNT_OF_FRAMES = 37;
 
-    private ctx: CanvasRenderingContext2D;
     private keyboardListener: KeyboardListener;
-    private player: Player;
-    private menuItems: MenuItem[] = [];
-    private speakers: Speaker[] = [];
-    private repo: ImageLoader;
-
-    private backgroundFrame: { frame: HTMLImageElement, key: string };
     private backgroundAudio: HTMLAudioElement;
-    private currentPlayerImgIndex: { state: number } = { state: 0 };
+    private frames: number = 0;
     private canJump: { right: boolean, left: boolean } = { right: true, left: true }
 
-    private width: number;
-    private height: number;
-    private audio: boolean = true;
-    private frames: number = 0;
+    protected player: Player;
+    protected menuItems: MenuItem[] = [];
+    protected speakers: Speaker[] = [];
+    protected repo: ImageLoader;
+
+    
+    
+    protected currentPlayerImgIndex: { state: number } = { state: 0 };
+    
+
+    protected width: number;
+    protected height: number;
+    protected audio: boolean = true;
+    
 
     /**
      * Constructs the menu
@@ -29,8 +32,8 @@ class Menu {
     public constructor(ctx: CanvasRenderingContext2D, width: number, height: number, repo: ImageLoader) {
         this.width = width;
         this.height = height;
-        this.ctx = ctx;
-        this.backgroundAudio = new Audio(Menu.MENU_MUSIC);
+        
+        this.backgroundAudio = new Audio(MenuLogic.MENU_MUSIC);
         this.backgroundAudio.loop = true;
         this.repo = repo;
 
@@ -39,6 +42,8 @@ class Menu {
         const playerSprites: HTMLImageElement[] = Player.PLAYER_SPRITES.map((key: string) => this.repo.getImage(key))
         this.player = new Player(this.width / 3, 0, 0, playerSprites);
     }
+  
+    
 
 
 
@@ -58,7 +63,7 @@ class Menu {
             return instance;
         });
 
-        this.backgroundFrame = { frame: this.repo.getImage("0"), key: "0" };
+        
     }
 
     /**
@@ -77,27 +82,9 @@ class Menu {
      * Checks if the remainder of the amount of frames is 0 
      * @param {number} amountOfFrames 
      */
-    private nextAnimation(amountOfFrames: number): boolean {
+    protected nextAnimation(amountOfFrames: number): boolean {
         const statement = this.frames % amountOfFrames === 0;
         return statement
-    }
-
-    /**
-     * Method for drawing the player
-     */
-    private drawPlayer() {
-        if (this.nextAnimation(15)) {
-            if (this.currentPlayerImgIndex.state !== 0) {
-                this.currentPlayerImgIndex.state = 0;
-            } else {
-                this.currentPlayerImgIndex.state = 1;
-            }
-        }
-        const next = this.currentPlayerImgIndex.state;
-        const levelObjHeight = this.repo.getImage("level1").height;
-        const playerPos = this.height / 10 * 2.3 + levelObjHeight;
-        this.player.yPos = playerPos - this.repo.getImage(`main_char_${next + 1}`).height
-        this.player.draw(this.ctx, next)
     }
 
     /**
@@ -129,41 +116,6 @@ class Menu {
         if (!this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && !this.canJump.right) {
             this.canJump.right = true;
         }
-    }
-
-    /**
-     * Method for drawing the menu items
-     */
-    private drawMenuItems() {
-        this.menuItems.forEach(menuItem => {
-            menuItem.draw(this.ctx);
-        })
-    }
-
-    /**
-     * Method for drawing the speaker
-     */
-    private drawSpeaker() {
-        const speakerSpriteIndex = this.audio ? 0 : 1;
-        this.speakers[speakerSpriteIndex].draw(this.ctx);
-    }
-
-    /**
-     * Method for drawing the background
-     */
-    private drawBackGround() {
-        if (this.nextAnimation(3)) {
-            this.backgroundFrame.key = String(Number(this.backgroundFrame.key) + 1);
-            if (Number(this.backgroundFrame.key) >= Menu.AMOUNT_OF_FRAMES) {
-                this.backgroundFrame.key = String(0);
-            }
-            this.backgroundFrame.frame = this.repo.getImage(this.backgroundFrame.key);
-        }
-        const background = this.repo.getImage("earth");
-        background.width = 300;
-        background.height = 300;
-        this.ctx.drawImage(this.backgroundFrame.frame, 0, 0, this.width, this.height)
-        this.ctx.drawImage(background, (this.width / 2) - (background.width / 2), (this.height / 2) - (background.height / 2), background.width, background.height);
     }
 
     /**
