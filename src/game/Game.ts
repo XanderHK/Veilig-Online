@@ -19,7 +19,6 @@ class Game {
 
     private LevelViews: View[] = [];
 
-    private menuLogic: MenuLogic;
     private menuView: MenuView;
 
     private FPS: number = 0;
