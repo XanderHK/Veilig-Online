@@ -19,9 +19,10 @@ class Game {
 
     private LevelViews: View[] = [];
 
-    private menu: Menu;
+    private menuView: MenuView;
 
-    private FPS: number = 0;
+    private fps: number = 0;
+    private passedFrames: number = 0;
     private ticks: number = 0;
     private last: number = 0;
 
@@ -71,32 +72,37 @@ class Game {
         // Clears the canvas
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Checks if all images have been loaded
-        if (!this.repo.isLoading()) {
+
+        const now = Date.now();
+        if (now - this.last >= 1000 && this.fps === 0) {
+            this.last = now;
+            this.fps = this.ticks;
+            (window as any).fps = this.fps;
+            this.ticks = 0;
+        }
+        if (this.fps === 0) {
+            this.ticks++;
+        }
+
+        // Checks if all images have been loaded and if the fps has been set
+        if (!this.repo.isLoading() && this.fps !== 0) {
             this.gamestate = GameState.Main;
             // Checks if the menu attribute has a menu instance
-            if (this.menu === undefined) {
-                this.menu = new Menu(this.ctx, this.canvas.width, this.canvas.height, this.repo)
+            if (this.menuView === undefined) {
+                this.menuView = new MenuView(this.repo, this.ctx, this.canvas.width, this.canvas.height,)
             }
         } else {
             this.ctx.fillText("Loading...", this.canvas.width / 2, this.canvas.height / 2)
         }
 
         if (this.gamestate === GameState.Main) {
+            this.menuView.frames = this.passedFrames;
             // Overwrites the repoKeys containing the paths to the actual keys
             this.repoKeys = this.repoKeys.map((path) => path.split("/").pop().split(".").shift())
             // Draws the menu
-            this.menu.drawMenu();
+            this.menuView.drawMenu();
         }
+        this.passedFrames++;
         requestAnimationFrame(this.step);
-
-        var now = Date.now();
-        if (now - this.last >= 1000) {
-            this.last = now;
-            this.FPS = this.ticks;
-            this.ticks = 0;
-        }
-        this.ticks++;
-        console.log(this.FPS)
     }
 }

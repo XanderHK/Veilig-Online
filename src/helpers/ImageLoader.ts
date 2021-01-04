@@ -4,7 +4,7 @@ class ImageLoader {
     private loadingAssets: string[] = []
 
     /**
-     * 
+     * Constructor of the ImageLoaders object that loads all the images that are being supplied to it.
      * @param {string[]} assets 
      * @param {string} prefix 
      */

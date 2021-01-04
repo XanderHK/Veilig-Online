@@ -1,5 +1,5 @@
 /// <reference path="Game.ts"/>
-class Menu {
+class MenuOld {
     public static readonly MENU_MUSIC = Game.AUDIO_PATH + "theme_song_veilig_online_the_game.wav";
     public static readonly AMOUNT_OF_FRAMES = 37;
 
@@ -30,7 +30,7 @@ class Menu {
         this.width = width;
         this.height = height;
         this.ctx = ctx;
-        this.backgroundAudio = new Audio(Menu.MENU_MUSIC);
+        this.backgroundAudio = new Audio(MenuOld.MENU_MUSIC);
         this.backgroundAudio.loop = true;
         this.repo = repo;
 
@@ -81,6 +81,17 @@ class Menu {
         const statement = this.frames % amountOfFrames === 0;
         return statement
     }
+
+
+    // /**
+    //  * Checks if the remainder of the amount of frames is 0 
+    //  * @param {number} amountOfFrames 
+    //  */
+    // private nextAnimation(seconds: number): boolean {
+    //     const timePerFrameSec = 1 / (window as any).fps;
+    //     const statement = this.frames % (seconds / timePerFrameSec) === 0;
+    //     return statement
+    // }
 
     /**
      * Method for drawing the player
@@ -144,7 +155,7 @@ class Menu {
      * Method for drawing the speaker
      */
     private drawSpeaker() {
-        const speakerSpriteIndex = this.audio ? 0 : 1;
+        const speakerSpriteIndex: number = this.audio ? 0 : 1;
         this.speakers[speakerSpriteIndex].draw(this.ctx);
     }
 
@@ -154,7 +165,7 @@ class Menu {
     private drawBackGround() {
         if (this.nextAnimation(3)) {
             this.backgroundFrame.key = String(Number(this.backgroundFrame.key) + 1);
-            if (Number(this.backgroundFrame.key) >= Menu.AMOUNT_OF_FRAMES) {
+            if (Number(this.backgroundFrame.key) >= MenuOld.AMOUNT_OF_FRAMES) {
                 this.backgroundFrame.key = String(0);
             }
             this.backgroundFrame.frame = this.repo.getImage(this.backgroundFrame.key);
@@ -190,7 +201,7 @@ class Menu {
            * TODO delegate all click events to the clickhandler
            */
         window.addEventListener("click", event => {
-            const referenceImg = this.repo.getImage("muted")
+            const referenceImg: HTMLImageElement = this.repo.getImage("muted")
             if (
                 event.clientX >= 0 &&
                 event.clientX < 0 + referenceImg.width &&
