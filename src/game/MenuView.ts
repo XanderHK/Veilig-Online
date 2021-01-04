@@ -1,6 +1,7 @@
 /// <reference path="MenuLogic.ts"/>
 class MenuView extends MenuLogic {
 
+    private ctx: CanvasRenderingContext2D;
     private backgroundFrame: { frame: HTMLImageElement, key: string };
 
     public constructor(
@@ -10,7 +11,8 @@ class MenuView extends MenuLogic {
         height: number,
 
     ) {
-        super(ctx, width, height, repo);
+        super(width, height, repo);
+        this.ctx = ctx;
         this.backgroundFrame = { frame: this.repo.getImage("0"), key: "0" };
     }
 
@@ -77,6 +79,5 @@ class MenuView extends MenuLogic {
         this.drawSpeaker();
         this.movePlayer();
         this.drawPlayer();
-        this.interactsWithLevel()
     }
 }
