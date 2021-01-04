@@ -12,7 +12,7 @@ abstract class MenuLogic {
     protected menuItems: MenuItem[] = [];
     protected speakers: Speaker[] = [];
     protected repo: ImageLoader;
-
+    protected ctx: CanvasRenderingContext2D;
     
     
     protected currentPlayerImgIndex: { state: number } = { state: 0 };
@@ -32,7 +32,7 @@ abstract class MenuLogic {
     public constructor(ctx: CanvasRenderingContext2D, width: number, height: number, repo: ImageLoader) {
         this.width = width;
         this.height = height;
-        
+        this.ctx = ctx;
         this.backgroundAudio = new Audio(MenuLogic.MENU_MUSIC);
         this.backgroundAudio.loop = true;
         this.repo = repo;

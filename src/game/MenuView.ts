@@ -1,11 +1,10 @@
 /// <reference path="MenuLogic.ts"/>
 class MenuView extends MenuLogic{
-    private ctx: CanvasRenderingContext2D;
-    private backgroundFrame: { frame: HTMLImageElement, key: string };
     
+    protected backgroundFrame: { frame: HTMLImageElement, key: string };
     public constructor(){
         super();
-        this.ctx = ctx;
+        
         this.backgroundFrame = { frame: this.repo.getImage("0"), key: "0" };
     }
 
