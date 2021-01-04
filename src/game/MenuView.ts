@@ -2,10 +2,18 @@
 class MenuView extends MenuLogic{
     
     protected backgroundFrame: { frame: HTMLImageElement, key: string };
-    public constructor(){
-        super();
+    public constructor(  
+        repo: ImageLoader,
+        ctx: CanvasRenderingContext2D,
+        width: number,
+        height: number,
         
+        ){
+      
+
+        super(ctx,width,height,repo);
         this.backgroundFrame = { frame: this.repo.getImage("0"), key: "0" };
+        
     }
 
      /**
@@ -59,5 +67,20 @@ class MenuView extends MenuLogic{
         background.height = 300;
         this.ctx.drawImage(this.backgroundFrame.frame, 0, 0, this.width, this.height)
         this.ctx.drawImage(background, (this.width / 2) - (background.width / 2), (this.height / 2) - (background.height / 2), background.width, background.height);
+    }
+
+      /**
+     * Draws the menu entirely 
+     */
+    public drawMenu() {
+        this.mute();
+        this.drawBackGround();
+        this.drawMenuItems();
+        this.backGroundAudio();
+        this.drawSpeaker();
+        this.movePlayer();
+        this.drawPlayer();
+        this.interactsWithLevel()
+        this.frames++;
     }
 }

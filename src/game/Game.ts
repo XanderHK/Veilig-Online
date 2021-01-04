@@ -19,7 +19,8 @@ class Game {
 
     private LevelViews: View[] = [];
 
-    private menu: Menu;
+    private menuLogic: MenuLogic;
+    private menuView: MenuView;
 
     private FPS: number = 0;
     private ticks: number = 0;
@@ -75,8 +76,8 @@ class Game {
         if (!this.repo.isLoading()) {
             this.gamestate = GameState.Main;
             // Checks if the menu attribute has a menu instance
-            if (this.menu === undefined) {
-                this.menu = new Menu(this.ctx, this.canvas.width, this.canvas.height, this.repo)
+            if (this.menuView === undefined) {
+                this.menuView = new MenuView(this.repo, this.ctx, this.canvas.width, this.canvas.height, )
             }
         } else {
             this.ctx.fillText("Loading...", this.canvas.width / 2, this.canvas.height / 2)
@@ -86,7 +87,7 @@ class Game {
             // Overwrites the repoKeys containing the paths to the actual keys
             this.repoKeys = this.repoKeys.map((path) => path.split("/").pop().split(".").shift())
             // Draws the menu
-            this.menu.drawMenu();
+            this.menuView.drawMenu();
         }
         requestAnimationFrame(this.step);
 

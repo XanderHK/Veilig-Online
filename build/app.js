@@ -12,8 +12,8 @@ class Game {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
             if (!this.repo.isLoading()) {
                 this.gamestate = GameState.Main;
-                if (this.menu === undefined) {
-                    this.menu = new Menu(this.ctx, this.canvas.width, this.canvas.height, this.repo);
+                if (this.menuView === undefined) {
+                    this.menuView = new MenuView(this.repo, this.ctx, this.canvas.width, this.canvas.height);
                 }
             }
             else {
@@ -21,7 +21,7 @@ class Game {
             }
             if (this.gamestate === GameState.Main) {
                 this.repoKeys = this.repoKeys.map((path) => path.split("/").pop().split(".").shift());
-                this.menu.drawMenu();
+                this.menuView.drawMenu();
             }
             requestAnimationFrame(this.step);
             var now = Date.now();
@@ -64,18 +64,18 @@ class Level {
         this.blocks = [];
     }
 }
-class Menu {
+class MenuLogic {
     constructor(ctx, width, height, repo) {
+        this.frames = 0;
+        this.canJump = { right: true, left: true };
         this.menuItems = [];
         this.speakers = [];
         this.currentPlayerImgIndex = { state: 0 };
-        this.canJump = { right: true, left: true };
         this.audio = true;
-        this.frames = 0;
         this.width = width;
         this.height = height;
         this.ctx = ctx;
-        this.backgroundAudio = new Audio(Menu.MENU_MUSIC);
+        this.backgroundAudio = new Audio(MenuLogic.MENU_MUSIC);
         this.backgroundAudio.loop = true;
         this.repo = repo;
         this.initializeImages();
@@ -94,7 +94,6 @@ class Menu {
             const instance = new MenuItem(x, this.height / 10 * 2.5, image);
             return instance;
         });
-        this.backgroundFrame = { frame: this.repo.getImage("0"), key: "0" };
     }
     backGroundAudio() {
         if (this.audio) {
@@ -108,21 +107,6 @@ class Menu {
     nextAnimation(amountOfFrames) {
         const statement = this.frames % amountOfFrames === 0;
         return statement;
-    }
-    drawPlayer() {
-        if (this.nextAnimation(15)) {
-            if (this.currentPlayerImgIndex.state !== 0) {
-                this.currentPlayerImgIndex.state = 0;
-            }
-            else {
-                this.currentPlayerImgIndex.state = 1;
-            }
-        }
-        const next = this.currentPlayerImgIndex.state;
-        const levelObjHeight = this.repo.getImage("level1").height;
-        const playerPos = this.height / 10 * 2.3 + levelObjHeight;
-        this.player.yPos = playerPos - this.repo.getImage(`main_char_${next + 1}`).height;
-        this.player.draw(this.ctx, next);
     }
     movePlayer() {
         const maxBound = this.menuItems[this.menuItems.length - 1].xPos;
@@ -148,29 +132,6 @@ class Menu {
             this.canJump.right = true;
         }
     }
-    drawMenuItems() {
-        this.menuItems.forEach(menuItem => {
-            menuItem.draw(this.ctx);
-        });
-    }
-    drawSpeaker() {
-        const speakerSpriteIndex = this.audio ? 0 : 1;
-        this.speakers[speakerSpriteIndex].draw(this.ctx);
-    }
-    drawBackGround() {
-        if (this.nextAnimation(3)) {
-            this.backgroundFrame.key = String(Number(this.backgroundFrame.key) + 1);
-            if (Number(this.backgroundFrame.key) >= Menu.AMOUNT_OF_FRAMES) {
-                this.backgroundFrame.key = String(0);
-            }
-            this.backgroundFrame.frame = this.repo.getImage(this.backgroundFrame.key);
-        }
-        const background = this.repo.getImage("earth");
-        background.width = 300;
-        background.height = 300;
-        this.ctx.drawImage(this.backgroundFrame.frame, 0, 0, this.width, this.height);
-        this.ctx.drawImage(background, (this.width / 2) - (background.width / 2), (this.height / 2) - (background.height / 2), background.width, background.height);
-    }
     interactsWithLevel() {
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_SPACE)) {
             this.menuItems.forEach((menuItem) => {
@@ -193,6 +154,52 @@ class Menu {
             }
         });
     }
+}
+MenuLogic.MENU_MUSIC = Game.AUDIO_PATH + "theme_song_veilig_online_the_game.wav";
+MenuLogic.AMOUNT_OF_FRAMES = 37;
+class MenuView extends MenuLogic {
+    constructor(repo, ctx, width, height) {
+        super(ctx, width, height, repo);
+        this.backgroundFrame = { frame: this.repo.getImage("0"), key: "0" };
+    }
+    drawPlayer() {
+        if (this.nextAnimation(15)) {
+            if (this.currentPlayerImgIndex.state !== 0) {
+                this.currentPlayerImgIndex.state = 0;
+            }
+            else {
+                this.currentPlayerImgIndex.state = 1;
+            }
+        }
+        const next = this.currentPlayerImgIndex.state;
+        const levelObjHeight = this.repo.getImage("level1").height;
+        const playerPos = this.height / 10 * 2.3 + levelObjHeight;
+        this.player.yPos = playerPos - this.repo.getImage(`main_char_${next + 1}`).height;
+        this.player.draw(this.ctx, next);
+    }
+    drawMenuItems() {
+        this.menuItems.forEach(menuItem => {
+            menuItem.draw(this.ctx);
+        });
+    }
+    drawSpeaker() {
+        const speakerSpriteIndex = this.audio ? 0 : 1;
+        this.speakers[speakerSpriteIndex].draw(this.ctx);
+    }
+    drawBackGround() {
+        if (this.nextAnimation(3)) {
+            this.backgroundFrame.key = String(Number(this.backgroundFrame.key) + 1);
+            if (Number(this.backgroundFrame.key) >= MenuLogic.AMOUNT_OF_FRAMES) {
+                this.backgroundFrame.key = String(0);
+            }
+            this.backgroundFrame.frame = this.repo.getImage(this.backgroundFrame.key);
+        }
+        const background = this.repo.getImage("earth");
+        background.width = 300;
+        background.height = 300;
+        this.ctx.drawImage(this.backgroundFrame.frame, 0, 0, this.width, this.height);
+        this.ctx.drawImage(background, (this.width / 2) - (background.width / 2), (this.height / 2) - (background.height / 2), background.width, background.height);
+    }
     drawMenu() {
         this.mute();
         this.drawBackGround();
@@ -204,10 +211,6 @@ class Menu {
         this.interactsWithLevel();
         this.frames++;
     }
-}
-Menu.MENU_MUSIC = Game.AUDIO_PATH + "theme_song_veilig_online_the_game.wav";
-Menu.AMOUNT_OF_FRAMES = 37;
-class MenuView {
 }
 class View extends Level {
     constructor() {

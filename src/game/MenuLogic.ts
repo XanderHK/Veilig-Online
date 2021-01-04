@@ -5,29 +5,30 @@ abstract class MenuLogic {
 
     private keyboardListener: KeyboardListener;
     private backgroundAudio: HTMLAudioElement;
-    private frames: number = 0;
+    protected frames: number = 0;
     private canJump: { right: boolean, left: boolean } = { right: true, left: true }
 
     protected player: Player;
     protected menuItems: MenuItem[] = [];
     protected speakers: Speaker[] = [];
+
     protected repo: ImageLoader;
     protected ctx: CanvasRenderingContext2D;
-    
+    protected width: number;
+    protected height: number;
     
     protected currentPlayerImgIndex: { state: number } = { state: 0 };
     
 
-    protected width: number;
-    protected height: number;
+    
     protected audio: boolean = true;
     
 
     /**
      * Constructs the menu
-     * @param {CanvasRenderingContext2D} ctx 
-     * @param {number} width 
-     * @param {number} height 
+     * @param {CanvasRenderingContext2D} ctx
+     * @param {number} width
+     * @param {number} height
      */
     public constructor(ctx: CanvasRenderingContext2D, width: number, height: number, repo: ImageLoader) {
         this.width = width;
@@ -69,7 +70,7 @@ abstract class MenuLogic {
     /**
      * Checks if the audio flag is true or false and turns the audio on or of depending on this
      */
-    private backGroundAudio() {
+    protected backGroundAudio() {
         if (this.audio) {
             this.backgroundAudio.play();
         } else {
@@ -90,7 +91,7 @@ abstract class MenuLogic {
     /**
      * Method for moving the player on the screen
      */
-    private movePlayer() {
+    protected movePlayer() {
         const maxBound = this.menuItems[this.menuItems.length - 1].xPos;
         const minBound = this.menuItems[0].xPos;
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && this.canJump.right && this.player.xPos <= maxBound) {
@@ -137,7 +138,7 @@ abstract class MenuLogic {
     /**
      * Mute method
      */
-    private mute() {
+    protected mute() {
         /**
            * TODO delegate all click events to the clickhandler
            */
@@ -155,18 +156,5 @@ abstract class MenuLogic {
     }
 
 
-    /**
-     * Draws the menu entirely 
-     */
-    public drawMenu() {
-        this.mute();
-        this.drawBackGround();
-        this.drawMenuItems();
-        this.backGroundAudio();
-        this.drawSpeaker();
-        this.movePlayer();
-        this.drawPlayer();
-        this.interactsWithLevel()
-        this.frames++;
-    }
+  
 }
