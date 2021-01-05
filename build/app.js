@@ -42,7 +42,7 @@ class Game {
     initializeLevels() {
         for (let i = 0; i < Game.AMOUNT_OF_LEVELS; i++) {
             const config = {
-                name: `level ${i}`,
+                name: `level ${i + 1}`,
                 platforms: [
                     { xStart: 0, xEnd: 100, yStart: 100, yEnd: 200 },
                     { xStart: 0, xEnd: 100, yStart: 100, yEnd: 200 }
@@ -124,13 +124,26 @@ class Level extends Logic {
         this.height = height;
         this.width = width;
         const entries = Object.entries(config);
+        this.initializePlatforms(entries);
+    }
+    initializePlatforms(entries) {
+        const tileSprite = this.repo.getImage("tile");
+        tileSprite.height = Level.TILE_HEIGHT;
+        tileSprite.width = Level.TILE_WIDTH;
         this.name = String(entries.find((entry) => entry[0] === "name")[1]);
-        const platforms = Object.values(entries.find(entry => entry[0] === "platforms")[1]).map((settings) => {
-            console.log(settings.xEnd);
+        let startPos = 0;
+        this.blocks = Object.values(entries.find(entry => entry[0] === "platforms")[1]).map((settings, i) => {
+            const amountOfTiles = Math.floor(settings.xEnd / tileSprite.width);
+            if (startPos <= settings.xStart) {
+                startPos = settings.xStart;
+            }
+            return new Block(startPos, 0, 0);
+            startPos += tileSprite.width;
         });
-        console.log(platforms);
     }
 }
+Level.TILE_WIDTH = 50;
+Level.TILE_HEIGHT = 50;
 class MenuLogic extends Logic {
     constructor(width, height, repo) {
         super(repo);
@@ -230,6 +243,12 @@ class MenuView extends MenuLogic {
         this.ctx = ctx;
         this.backgroundFrame = { frame: this.repo.getImage("0"), key: "0" };
     }
+    drawInstructions() {
+        const instructionText = "PRESS ENTER TO START LEVEL";
+        const instructions = new TextString(this.width / 2, this.height / 2 + this.repo.getImage("earth").height, instructionText);
+        instructions.fillStyle = "white";
+        instructions.drawText(this.ctx);
+    }
     drawPlayer() {
         if (this.nextAnimation(15)) {
             if (this.currentPlayerImgIndex.state !== 0) {
@@ -276,6 +295,7 @@ class MenuView extends MenuLogic {
         this.drawSpeaker();
         this.movePlayer();
         this.drawPlayer();
+        this.drawInstructions();
     }
 }
 class View extends Level {
@@ -329,6 +349,8 @@ class Player extends GameEntity {
     constructor(x, y, velocity, sprites) {
         super(x, y, velocity);
         this.images = sprites;
+    }
+    move() {
     }
     draw(ctx, state) {
         ctx.drawImage(this.images[state], this.xPos, this.yPos);

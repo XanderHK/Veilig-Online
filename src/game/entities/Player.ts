@@ -9,6 +9,10 @@ class Player extends GameEntity {
         this.images = sprites;
     }
 
+    public move() {
+
+    }
+
 
     public draw(ctx: CanvasRenderingContext2D, state: number) {
         ctx.drawImage(this.images[state], this.xPos, this.yPos);

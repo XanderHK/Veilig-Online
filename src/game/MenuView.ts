@@ -17,6 +17,16 @@ class MenuView extends MenuLogic {
     }
 
     /**
+     * Draws the instructions uderneath of the earth
+     */
+    private drawInstructions() {
+        const instructionText: string = "PRESS ENTER TO START LEVEL"
+        const instructions: TextString = new TextString(this.width / 2, this.height / 2 + this.repo.getImage("earth").height, instructionText);
+        instructions.fillStyle = "white";
+        instructions.drawText(this.ctx);
+    }
+
+    /**
     * Method for drawing the player
     */
     private drawPlayer() {
@@ -79,5 +89,6 @@ class MenuView extends MenuLogic {
         this.drawSpeaker();
         this.movePlayer();
         this.drawPlayer();
+        this.drawInstructions();
     }
 }
