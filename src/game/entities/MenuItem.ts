@@ -3,7 +3,7 @@ class MenuItem extends GameEntity {
     private image: HTMLImageElement
 
     public constructor(x: number, y: number, img: HTMLImageElement) {
-        super(x, y, 0);
+        super(x, y);
         this.image = img;
     }
 
