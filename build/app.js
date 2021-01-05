@@ -246,6 +246,14 @@ class Block extends GameEntity {
     draw(ctx) {
     }
 }
+class Lava extends GameEntity {
+    constructor(x, y) {
+        super(x, y, 0);
+    }
+    draw(ctx) {
+        ctx.drawImage;
+    }
+}
 class MenuItem extends GameEntity {
     constructor(x, y, img) {
         super(x, y, 0);
@@ -275,6 +283,14 @@ class Speaker extends GameEntity {
     }
 }
 Speaker.SPEAKER_SPRITES = ["not-muted.png", "muted.png"];
+class Spike extends GameEntity {
+    constructor(x, y) {
+        super(x, y, 0);
+    }
+    draw(ctx) {
+        ctx.drawImage;
+    }
+}
 class ClickHandler {
     static click(instance, method, measurements) {
         window.addEventListener("click", (event) => {
