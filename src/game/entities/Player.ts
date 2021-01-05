@@ -7,21 +7,23 @@ class Player extends GameEntity {
     public constructor(x: number, y: number, velocity: number, sprites: HTMLImageElement[]) {
         super(x, y, velocity);
         this.images = sprites;
+
     }
 
-    public move(value:number) {
-        const nextXPos = this.xPos + (value);
+    public move(direction:boolean) {
+        const nextXPos = this.xPos + (direction ? this.velocity:-this.velocity);
         this.xPos = nextXPos;
         
     }
     public jump(value:number) {
-        const nextHeight = this.yPos + (value);
-        this.yPos = nextHeight;
+        this.yPos -= value;
+        console.log(this.yPos);
         
     }
     public gravity(){
-        const nextHeight = this.yPos - 10;
-        this.yPos = nextHeight;
+      
+        this.yPos += 10;
+        console.log(this.yPos);
     }
 
     public draw(ctx: CanvasRenderingContext2D, state: number) {

@@ -22,6 +22,8 @@ abstract class Level extends Logic {
         this.initializePlatforms(entries);
         this.keyboardListener = new KeyboardListener();
        
+        const playerSprites: HTMLImageElement[] = Player.PLAYER_SPRITES.map((key: string) => this.repo.getImage(key))
+        this.player = new Player(this.width / 3, 0, 8, playerSprites);
         
     }
 
@@ -43,16 +45,16 @@ abstract class Level extends Logic {
     }
     protected movePlayer() {
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT)&& this.player.xPos>-1 ) {
-            this.player.move(8);
+            this.player.move(true);
             
         }
 
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT)&& this.player.xPos>0) {
-            this.player.move(-8);
+            this.player.move(false);
         }
 
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_UP)&& this.player.xPos>0) {
-           this.player.jump(3);
+           this.player.jump(20);
         }
  
 }}

@@ -11,8 +11,7 @@ class View extends Level {
         super(config, repo, width, height);
         this.ctx = ctx;
 
-        const playerSprites: HTMLImageElement[] = Player.PLAYER_SPRITES.map((key: string) => this.repo.getImage(key))
-        this.player = new Player(this.width / 3, 0, 0, playerSprites);
+        
         
         
     }

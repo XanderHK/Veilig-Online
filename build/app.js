@@ -126,6 +126,8 @@ class Level extends Logic {
         const entries = Object.entries(config);
         this.initializePlatforms(entries);
         this.keyboardListener = new KeyboardListener();
+        const playerSprites = Player.PLAYER_SPRITES.map((key) => this.repo.getImage(key));
+        this.player = new Player(this.width / 3, 0, 8, playerSprites);
     }
     initializePlatforms(entries) {
         const tileSprite = this.repo.getImage("tile");
@@ -144,13 +146,13 @@ class Level extends Logic {
     }
     movePlayer() {
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && this.player.xPos > -1) {
-            this.player.move(8);
+            this.player.move(true);
         }
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && this.player.xPos > 0) {
-            this.player.move(-8);
+            this.player.move(false);
         }
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_UP) && this.player.xPos > 0) {
-            this.player.jump(3);
+            this.player.jump(20);
         }
     }
 }
@@ -315,8 +317,6 @@ class View extends Level {
         super(config, repo, width, height);
         this.currentPlayerImgIndex = { state: 0 };
         this.ctx = ctx;
-        const playerSprites = Player.PLAYER_SPRITES.map((key) => this.repo.getImage(key));
-        this.player = new Player(this.width / 3, 0, 0, playerSprites);
     }
     drawLevel() {
         new TextString(this.width / 2, this.height / 2, this.name).drawText(this.ctx);
@@ -393,17 +393,17 @@ class Player extends GameEntity {
         super(x, y, velocity);
         this.images = sprites;
     }
-    move(value) {
-        const nextXPos = this.xPos + (value);
+    move(direction) {
+        const nextXPos = this.xPos + (direction ? this.velocity : -this.velocity);
         this.xPos = nextXPos;
     }
     jump(value) {
-        const nextHeight = this.yPos + (value);
-        this.yPos = nextHeight;
+        this.yPos -= value;
+        console.log(this.yPos);
     }
     gravity() {
-        const nextHeight = this.yPos - 10;
-        this.yPos = nextHeight;
+        this.yPos += 10;
+        console.log(this.yPos);
     }
     draw(ctx, state) {
         ctx.drawImage(this.images[state], this.xPos, this.yPos);
