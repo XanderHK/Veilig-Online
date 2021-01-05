@@ -71,15 +71,6 @@ abstract class MenuLogic extends Logic {
     }
 
     /**
-     * Checks if the remainder of the amount of frames is 0 
-     * @param {number} amountOfFrames 
-     */
-    protected nextAnimation(amountOfFrames: number): boolean {
-        const statement = this._frames % amountOfFrames === 0;
-        return statement
-    }
-
-    /**
      * Method for moving the player on the screen
      */
     protected movePlayer() {

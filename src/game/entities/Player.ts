@@ -7,7 +7,6 @@ class Player extends GameEntity {
     public constructor(x: number, y: number, velocityX: number, velocityY: number, sprites: HTMLImageElement[]) {
         super(x, y, velocityX, velocityY);
         this.images = sprites;
-
     }
 
     public move(direction: boolean) {

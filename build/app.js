@@ -95,6 +95,7 @@ class Game {
     }
     playState() {
         const currentLevel = this.LevelViews[this.currentLevelIndex];
+        this.LevelViews[this.currentLevelIndex].frames = this.passedFrames;
         currentLevel.drawLevel();
         if (this.keyListener.isKeyDown(KeyboardListener.KEY_ESCAPE)) {
             this.gamestate = GameState.Main;
@@ -117,6 +118,10 @@ class Logic {
         const statement = this._frames % (ms / timePerFrameSec) === 0;
         return statement;
     }
+    nextAnimation(amountOfFrames) {
+        const statement = this._frames % amountOfFrames === 0;
+        return statement;
+    }
 }
 class Level extends Logic {
     constructor(config, repo, width, height) {
@@ -130,7 +135,7 @@ class Level extends Logic {
         this.initializeSpikes(entries);
         this.keyboardListener = new KeyboardListener();
         const playerSprites = Player.PLAYER_SPRITES.map((key) => this.repo.getImage(key));
-        this.player = new Player(this.width / 3, 0, 8, 40, playerSprites);
+        this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("tile").height, 8, 10, playerSprites);
     }
     initializePlatforms(entries) {
         const tileSprite = this.repo.getImage("tile");
@@ -145,15 +150,35 @@ class Level extends Logic {
     }
     initializeSpikes(entries) {
     }
+    playerIsOnBlock() {
+        const isOnBlock = this.blocks.map((block) => {
+            const statement = this.player.xPos + this.repo.getImage("main_char_1").width > block.xPos + this.repo.getImage("tile").width;
+            return statement;
+        });
+        return (isOnBlock.find(bool => bool === false) === undefined ? true : false);
+    }
+    playerIsAboveBlock() {
+        const aboveBlock = this.blocks.map((block) => {
+            return this.player.yPos < block.yPos - this.repo.getImage("tile").height;
+        }).every(e => e === true);
+        return aboveBlock;
+    }
     movePlayer() {
+        const onBlock = this.playerIsOnBlock();
+        const aboveBlock = this.playerIsAboveBlock();
+        if (onBlock || aboveBlock) {
+            this.player.gravity();
+        }
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && this.player.xPos > -1) {
             this.player.move(true);
         }
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && this.player.xPos > 0) {
             this.player.move(false);
         }
-        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_UP) && this.player.xPos > 0) {
-            this.player.jump();
+        if (!onBlock) {
+            if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_UP) && this.player.xPos > 0) {
+                this.player.jump();
+            }
         }
     }
 }
@@ -194,10 +219,6 @@ class MenuLogic extends Logic {
             this.backgroundAudio.pause();
             this.backgroundAudio.currentTime = 0;
         }
-    }
-    nextAnimation(amountOfFrames) {
-        const statement = this._frames % amountOfFrames === 0;
-        return statement;
     }
     movePlayer() {
         const maxBound = this.menuItems[this.menuItems.length - 1].xPos;
@@ -324,11 +345,6 @@ class View extends Level {
         });
         this.movePlayer();
         this.drawPlayer();
-        this.player.gravity();
-    }
-    nextAnimation(amountOfFrames) {
-        const statement = this._frames % amountOfFrames === 0;
-        return statement;
     }
     drawPlayer() {
         if (this.nextAnimation(15)) {

@@ -1,6 +1,8 @@
 /// <reference path="Logic.ts"/>
 abstract class Level extends Logic {
 
+    private keyboardListener: KeyboardListener;
+
     protected name: string;
 
     protected width: number;
@@ -8,7 +10,6 @@ abstract class Level extends Logic {
 
     protected blocks: Block[] = []
     protected spikes: Spike[] = [];
-    private keyboardListener: KeyboardListener;
     protected player: Player;
 
 
@@ -22,7 +23,7 @@ abstract class Level extends Logic {
         this.keyboardListener = new KeyboardListener();
 
         const playerSprites: HTMLImageElement[] = Player.PLAYER_SPRITES.map((key: string) => this.repo.getImage(key))
-        this.player = new Player(this.width / 3, 0, 8, 40, playerSprites);
+        this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("tile").height, 8, 10, playerSprites);
 
     }
 
@@ -41,7 +42,32 @@ abstract class Level extends Logic {
     private initializeSpikes(entries: [string, any][]) {
 
     }
+
+    private playerIsOnBlock(): boolean {
+        const isOnBlock: boolean[] = this.blocks.map((block: Block) => {
+            const statement = this.player.xPos + this.repo.getImage("main_char_1").width > block.xPos + this.repo.getImage("tile").width
+            return statement;
+        })
+        return (isOnBlock.find(bool => bool === false) === undefined ? true : false)
+    }
+
+    private playerIsAboveBlock(): boolean {
+        const aboveBlock: boolean = this.blocks.map((block: Block) => {
+            return this.player.yPos < block.yPos - this.repo.getImage("tile").height
+        }).every(e => e === true);
+
+        return aboveBlock;
+    }
+
+
     protected movePlayer() {
+        const onBlock: boolean = this.playerIsOnBlock();
+        const aboveBlock: boolean = this.playerIsAboveBlock();
+
+        if (onBlock || aboveBlock) {
+            this.player.gravity();
+        }
+
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && this.player.xPos > -1) {
             this.player.move(true);
 
@@ -51,10 +77,12 @@ abstract class Level extends Logic {
             this.player.move(false);
         }
 
-        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_UP) && this.player.xPos > 0) {
-            this.player.jump();
-        }
 
+        if (!onBlock) {
+            if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_UP) && this.player.xPos > 0) {
+                this.player.jump();
+            }
+        }
     }
 
 }

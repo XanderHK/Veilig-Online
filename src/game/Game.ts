@@ -124,6 +124,7 @@ class Game {
     */
     private playState() {
         const currentLevel = this.LevelViews[this.currentLevelIndex];
+        this.LevelViews[this.currentLevelIndex].frames = this.passedFrames;
         currentLevel.drawLevel();
         if (this.keyListener.isKeyDown(KeyboardListener.KEY_ESCAPE)) {
             this.gamestate = GameState.Main;
@@ -167,5 +168,5 @@ class Game {
         this.passedFrames++;
         requestAnimationFrame(this.step);
     }
-   
+
 }

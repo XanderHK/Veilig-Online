@@ -3,8 +3,7 @@ class View extends Level {
 
     private ctx: CanvasRenderingContext2D;
 
-
-    protected currentPlayerImgIndex: { state: number } = { state: 0 };
+    private currentPlayerImgIndex: { state: number } = { state: 0 };
 
 
     public constructor(config: Config, ctx: CanvasRenderingContext2D, repo: ImageLoader, width: number, height: number) {
@@ -19,18 +18,7 @@ class View extends Level {
         })
         this.movePlayer();
         this.drawPlayer();
-        this.player.gravity();
     }
-    /**
-    * Checks if the remainder of the amount of frames is 0 
-    * @param {number} amountOfFrames 
-    */
-    protected nextAnimation(amountOfFrames: number): boolean {
-        const statement = this._frames % amountOfFrames === 0;
-        return statement
-    }
-
-
 
     private drawPlayer() {
         if (this.nextAnimation(15)) {
