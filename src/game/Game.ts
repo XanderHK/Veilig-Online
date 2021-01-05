@@ -40,10 +40,13 @@ class Game {
         this.step();
     }
 
+    /**
+     * Creates the levels
+     */
     private initializeLevels() {
         for (let i = 0; i < Game.AMOUNT_OF_LEVELS; i++) {
-            const config: any = {
-                name: `level ${i}`,
+            const config: Config = {
+                name: `level ${i + 1}`,
                 platforms: [
                     { xStart: 0, xEnd: 100, yStart: 100, yEnd: 200 },
                     { xStart: 0, xEnd: 100, yStart: 100, yEnd: 200 }
@@ -163,4 +166,5 @@ class Game {
         this.passedFrames++;
         requestAnimationFrame(this.step);
     }
+   
 }

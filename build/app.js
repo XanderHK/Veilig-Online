@@ -42,7 +42,7 @@ class Game {
     initializeLevels() {
         for (let i = 0; i < Game.AMOUNT_OF_LEVELS; i++) {
             const config = {
-                name: `level ${i}`,
+                name: `level ${i + 1}`,
                 platforms: [
                     { xStart: 0, xEnd: 100, yStart: 100, yEnd: 200 },
                     { xStart: 0, xEnd: 100, yStart: 100, yEnd: 200 }
@@ -124,13 +124,38 @@ class Level extends Logic {
         this.height = height;
         this.width = width;
         const entries = Object.entries(config);
+        this.initializePlatforms(entries);
+        this.keyboardListener = new KeyboardListener();
+    }
+    initializePlatforms(entries) {
+        const tileSprite = this.repo.getImage("tile");
+        tileSprite.height = Level.TILE_HEIGHT;
+        tileSprite.width = Level.TILE_WIDTH;
         this.name = String(entries.find((entry) => entry[0] === "name")[1]);
-        const platforms = Object.values(entries.find(entry => entry[0] === "platforms")[1]).map((settings) => {
-            console.log(settings.xEnd);
+        let startPos = 0;
+        this.blocks = Object.values(entries.find(entry => entry[0] === "platforms")[1]).map((settings, i) => {
+            const amountOfTiles = Math.floor(settings.xEnd / tileSprite.width);
+            if (startPos <= settings.xStart) {
+                startPos = settings.xStart;
+            }
+            return new Block(startPos, 0, 0);
+            startPos += tileSprite.width;
         });
-        console.log(platforms);
+    }
+    movePlayer() {
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && this.player.xPos > -1) {
+            this.player.move(8);
+        }
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && this.player.xPos > 0) {
+            this.player.move(-8);
+        }
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_UP) && this.player.xPos > 0) {
+            this.player.jump(3);
+        }
     }
 }
+Level.TILE_WIDTH = 50;
+Level.TILE_HEIGHT = 50;
 class MenuLogic extends Logic {
     constructor(width, height, repo) {
         super(repo);
@@ -230,6 +255,12 @@ class MenuView extends MenuLogic {
         this.ctx = ctx;
         this.backgroundFrame = { frame: this.repo.getImage("0"), key: "0" };
     }
+    drawInstructions() {
+        const instructionText = "PRESS ENTER TO START LEVEL";
+        const instructions = new TextString(this.width / 2, this.height / 2 + this.repo.getImage("earth").height, instructionText);
+        instructions.fillStyle = "white";
+        instructions.drawText(this.ctx);
+    }
     drawPlayer() {
         if (this.nextAnimation(15)) {
             if (this.currentPlayerImgIndex.state !== 0) {
@@ -276,15 +307,39 @@ class MenuView extends MenuLogic {
         this.drawSpeaker();
         this.movePlayer();
         this.drawPlayer();
+        this.drawInstructions();
     }
 }
 class View extends Level {
     constructor(config, ctx, repo, width, height) {
         super(config, repo, width, height);
+        this.currentPlayerImgIndex = { state: 0 };
         this.ctx = ctx;
+        const playerSprites = Player.PLAYER_SPRITES.map((key) => this.repo.getImage(key));
+        this.player = new Player(this.width / 3, 0, 0, playerSprites);
     }
     drawLevel() {
         new TextString(this.width / 2, this.height / 2, this.name).drawText(this.ctx);
+        this.movePlayer();
+        this.drawPlayer();
+        this.player.gravity();
+    }
+    nextAnimation(amountOfFrames) {
+        const statement = this._frames % amountOfFrames === 0;
+        return statement;
+    }
+    drawPlayer() {
+        if (this.nextAnimation(15)) {
+            if (this.currentPlayerImgIndex.state !== 0) {
+                this.currentPlayerImgIndex.state = 0;
+            }
+            else {
+                this.currentPlayerImgIndex.state = 1;
+            }
+        }
+        const next = this.currentPlayerImgIndex.state;
+        this.player.yPos = 200;
+        this.player.draw(this.ctx, next);
     }
 }
 class GameEntity {
@@ -337,6 +392,18 @@ class Player extends GameEntity {
     constructor(x, y, velocity, sprites) {
         super(x, y, velocity);
         this.images = sprites;
+    }
+    move(value) {
+        const nextXPos = this.xPos + (value);
+        this.xPos = nextXPos;
+    }
+    jump(value) {
+        const nextHeight = this.yPos + (value);
+        this.yPos = nextHeight;
+    }
+    gravity() {
+        const nextHeight = this.yPos - 10;
+        this.yPos = nextHeight;
     }
     draw(ctx, state) {
         ctx.drawImage(this.images[state], this.xPos, this.yPos);

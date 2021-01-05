@@ -9,6 +9,20 @@ class Player extends GameEntity {
         this.images = sprites;
     }
 
+    public move(value:number) {
+        const nextXPos = this.xPos + (value);
+        this.xPos = nextXPos;
+        
+    }
+    public jump(value:number) {
+        const nextHeight = this.yPos + (value);
+        this.yPos = nextHeight;
+        
+    }
+    public gravity(){
+        const nextHeight = this.yPos - 10;
+        this.yPos = nextHeight;
+    }
 
     public draw(ctx: CanvasRenderingContext2D, state: number) {
         ctx.drawImage(this.images[state], this.xPos, this.yPos);

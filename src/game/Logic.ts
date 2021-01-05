@@ -2,7 +2,7 @@ abstract class Logic {
 
     protected _frames: number = 0;
     protected repo: ImageLoader;
-
+  
     public constructor(repo: ImageLoader) {
         this.repo = repo;
     }
@@ -16,4 +16,6 @@ abstract class Logic {
         const statement = this._frames % (ms / timePerFrameSec) === 0;
         return statement
     }
+    
+    
 }
