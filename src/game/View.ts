@@ -10,5 +10,8 @@ class View extends Level {
 
     public drawLevel() {
         new TextString(this.width / 2, this.height / 2, this.name).drawText(this.ctx);
+        this.blocks.forEach((block: Block) => {
+            block.draw(this.ctx);
+        })
     }
 }

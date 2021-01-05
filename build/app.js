@@ -44,9 +44,10 @@ class Game {
             const config = {
                 name: `level ${i + 1}`,
                 platforms: [
-                    { xStart: 0, xEnd: 100, yStart: 100, yEnd: 200 },
-                    { xStart: 0, xEnd: 100, yStart: 100, yEnd: 200 }
-                ]
+                    { xStart: 0, xEnd: 500, yStart: 100, yEnd: 200 },
+                    { xStart: 0, xEnd: 100, yStart: 200, yEnd: 200 }
+                ],
+                spikes: [{ xStart: 0, xEnd: 500, yStart: 100, yEnd: 200 }]
             };
             this.LevelViews.push(new View(config, this.ctx, this.repo, this.canvas.width, this.canvas.height));
         }
@@ -121,29 +122,27 @@ class Level extends Logic {
     constructor(config, repo, width, height) {
         super(repo);
         this.blocks = [];
+        this.spikes = [];
         this.height = height;
         this.width = width;
         const entries = Object.entries(config);
         this.initializePlatforms(entries);
+        this.initializeSpikes(entries);
     }
     initializePlatforms(entries) {
         const tileSprite = this.repo.getImage("tile");
-        tileSprite.height = Level.TILE_HEIGHT;
-        tileSprite.width = Level.TILE_WIDTH;
         this.name = String(entries.find((entry) => entry[0] === "name")[1]);
-        let startPos = 0;
-        this.blocks = Object.values(entries.find(entry => entry[0] === "platforms")[1]).map((settings, i) => {
+        Object.values(entries.find(entry => entry[0] === "platforms")[1]).forEach((settings, i) => {
             const amountOfTiles = Math.floor(settings.xEnd / tileSprite.width);
-            if (startPos <= settings.xStart) {
-                startPos = settings.xStart;
+            for (let i = 0; i < amountOfTiles; i++) {
+                this.blocks.push(new Block(settings.xStart, settings.yStart, tileSprite));
+                settings.xStart += tileSprite.width;
             }
-            return new Block(startPos, 0, 0);
-            startPos += tileSprite.width;
         });
     }
+    initializeSpikes(entries) {
+    }
 }
-Level.TILE_WIDTH = 50;
-Level.TILE_HEIGHT = 50;
 class MenuLogic extends Logic {
     constructor(width, height, repo) {
         super(repo);
@@ -305,6 +304,9 @@ class View extends Level {
     }
     drawLevel() {
         new TextString(this.width / 2, this.height / 2, this.name).drawText(this.ctx);
+        this.blocks.forEach((block) => {
+            block.draw(this.ctx);
+        });
     }
 }
 class GameEntity {
@@ -333,7 +335,12 @@ class GameEntity {
     }
 }
 class Block extends GameEntity {
+    constructor(x, y, img) {
+        super(x, y);
+        this.img = img;
+    }
     draw(ctx) {
+        ctx.drawImage(this.img, this.xPos, this.yPos);
     }
 }
 class MenuItem extends GameEntity {

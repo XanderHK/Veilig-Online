@@ -48,9 +48,10 @@ class Game {
             const config: Config = {
                 name: `level ${i + 1}`,
                 platforms: [
-                    { xStart: 0, xEnd: 100, yStart: 100, yEnd: 200 },
-                    { xStart: 0, xEnd: 100, yStart: 100, yEnd: 200 }
-                ]
+                    { xStart: 0, xEnd: 500, yStart: 100, yEnd: 200 },
+                    { xStart: 0, xEnd: 100, yStart: 200, yEnd: 200 }
+                ],
+                spikes: [{ xStart: 0, xEnd: 500, yStart: 100, yEnd: 200 }]
             }
             this.LevelViews.push(new View(config, this.ctx, this.repo, this.canvas.width, this.canvas.height))
         }
