@@ -1,28 +1,23 @@
-/// <reference path="Game.ts"/>
-abstract class MenuLogic {
+/// <reference path="Logic.ts"/>
+abstract class MenuLogic extends Logic {
+
     public static readonly MENU_MUSIC = Game.AUDIO_PATH + "theme_song_veilig_online_the_game.wav";
     public static readonly AMOUNT_OF_FRAMES = 37;
 
     private keyboardListener: KeyboardListener;
     private backgroundAudio: HTMLAudioElement;
-    protected frames: number = 0;
     private canJump: { right: boolean, left: boolean } = { right: true, left: true }
 
     protected player: Player;
     protected menuItems: MenuItem[] = [];
     protected speakers: Speaker[] = [];
 
-    protected repo: ImageLoader;
-    protected ctx: CanvasRenderingContext2D;
     protected width: number;
     protected height: number;
-    
-    protected currentPlayerImgIndex: { state: number } = { state: 0 };
-    
 
-    
+    protected currentPlayerImgIndex: { state: number } = { state: 0 };
     protected audio: boolean = true;
-    
+
 
     /**
      * Constructs the menu
@@ -30,13 +25,12 @@ abstract class MenuLogic {
      * @param {number} width
      * @param {number} height
      */
-    public constructor(ctx: CanvasRenderingContext2D, width: number, height: number, repo: ImageLoader) {
+    public constructor(width: number, height: number, repo: ImageLoader) {
+        super(repo);
         this.width = width;
         this.height = height;
-        this.ctx = ctx;
         this.backgroundAudio = new Audio(MenuLogic.MENU_MUSIC);
         this.backgroundAudio.loop = true;
-        this.repo = repo;
 
         this.initializeImages();
         this.keyboardListener = new KeyboardListener();
@@ -45,8 +39,6 @@ abstract class MenuLogic {
     }
   
     
-
-
 
     /**
      * Method for creating all the sprites that will be used by this class
@@ -64,7 +56,6 @@ abstract class MenuLogic {
             return instance;
         });
 
-        
     }
 
     /**
@@ -84,7 +75,7 @@ abstract class MenuLogic {
      * @param {number} amountOfFrames 
      */
     protected nextAnimation(amountOfFrames: number): boolean {
-        const statement = this.frames % amountOfFrames === 0;
+        const statement = this._frames % amountOfFrames === 0;
         return statement
     }
 
@@ -123,16 +114,17 @@ abstract class MenuLogic {
    * W.I.P Method that checks what level the player is on
    */
     public interactsWithLevel() {
-        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_SPACE)) {
-            this.menuItems.forEach((menuItem) => {
+        let returnValue: any[] = [false, null];
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_ENTER)) {
+            this.menuItems.forEach((menuItem, i) => {
                 const currentPlayerSprite = this.repo.getImage(`main_char_${this.currentPlayerImgIndex.state + 1}`);
                 const playerPos = this.player.xPos + currentPlayerSprite.width
                 if (playerPos >= menuItem.xPos && playerPos <= menuItem.xPos + this.repo.getImage("level1").width) {
-                    // Do do something
-                    console.log("pressed")
+                    returnValue = [true, i];
                 }
             })
         }
+        return returnValue;
     }
 
     /**
@@ -156,5 +148,4 @@ abstract class MenuLogic {
     }
 
 
-  
 }

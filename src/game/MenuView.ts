@@ -1,24 +1,24 @@
 /// <reference path="MenuLogic.ts"/>
-class MenuView extends MenuLogic{
-    
-    protected backgroundFrame: { frame: HTMLImageElement, key: string };
-    public constructor(  
+class MenuView extends MenuLogic {
+
+    private ctx: CanvasRenderingContext2D;
+    private backgroundFrame: { frame: HTMLImageElement, key: string };
+
+    public constructor(
         repo: ImageLoader,
         ctx: CanvasRenderingContext2D,
         width: number,
         height: number,
-        
-        ){
-      
 
-        super(ctx,width,height,repo);
+    ) {
+        super(width, height, repo);
+        this.ctx = ctx;
         this.backgroundFrame = { frame: this.repo.getImage("0"), key: "0" };
-        
     }
 
-     /**
-     * Method for drawing the player
-     */
+    /**
+    * Method for drawing the player
+    */
     private drawPlayer() {
         if (this.nextAnimation(15)) {
             if (this.currentPlayerImgIndex.state !== 0) {
@@ -34,15 +34,14 @@ class MenuView extends MenuLogic{
         this.player.draw(this.ctx, next)
     }
 
-      /**
-     * Method for drawing the menu items
-     */
+    /**
+   * Method for drawing the menu items
+   */
     private drawMenuItems() {
         this.menuItems.forEach(menuItem => {
             menuItem.draw(this.ctx);
         })
     }
-
     /**
      * Method for drawing the speaker
      */
@@ -51,9 +50,9 @@ class MenuView extends MenuLogic{
         this.speakers[speakerSpriteIndex].draw(this.ctx);
     }
 
-      /**
-     * Method for drawing the background
-     */
+    /**
+   * Method for drawing the background
+   */
     private drawBackGround() {
         if (this.nextAnimation(3)) {
             this.backgroundFrame.key = String(Number(this.backgroundFrame.key) + 1);
@@ -69,9 +68,9 @@ class MenuView extends MenuLogic{
         this.ctx.drawImage(background, (this.width / 2) - (background.width / 2), (this.height / 2) - (background.height / 2), background.width, background.height);
     }
 
-      /**
-     * Draws the menu entirely 
-     */
+    /**
+   * Draws the menu entirely 
+   */
     public drawMenu() {
         this.mute();
         this.drawBackGround();
@@ -80,7 +79,5 @@ class MenuView extends MenuLogic{
         this.drawSpeaker();
         this.movePlayer();
         this.drawPlayer();
-        this.interactsWithLevel()
-        this.frames++;
     }
 }
