@@ -1,5 +1,5 @@
 /// <reference path="GameEntity.ts"/>
-class Spike extends GameEntity {
+class Lava extends GameEntity {
 
     public constructor(x:number, y:number){
         super(x,y,0);

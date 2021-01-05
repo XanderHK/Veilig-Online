@@ -8,6 +8,9 @@ abstract class Level extends Logic {
 
     protected blocks: Block[] = []
     protected spikes: Spike[] = [];
+    private keyboardListener: KeyboardListener;
+    protected player: Player;
+
 
     public constructor(config: Config, repo: ImageLoader, width: number, height: number) {
         super(repo);
@@ -16,6 +19,11 @@ abstract class Level extends Logic {
         const entries: [string, any][] = Object.entries(config);
         this.initializePlatforms(entries);
         this.initializeSpikes(entries);
+        this.keyboardListener = new KeyboardListener();
+
+        const playerSprites: HTMLImageElement[] = Player.PLAYER_SPRITES.map((key: string) => this.repo.getImage(key))
+        this.player = new Player(this.width / 3, 0, 8, 40, playerSprites);
+
     }
 
     private initializePlatforms(entries: [string, any][]) {
@@ -33,4 +41,20 @@ abstract class Level extends Logic {
     private initializeSpikes(entries: [string, any][]) {
 
     }
+    protected movePlayer() {
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && this.player.xPos > -1) {
+            this.player.move(true);
+
+        }
+
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && this.player.xPos > 0) {
+            this.player.move(false);
+        }
+
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_UP) && this.player.xPos > 0) {
+            this.player.jump();
+        }
+
+    }
+
 }

@@ -35,8 +35,10 @@ abstract class MenuLogic extends Logic {
         this.initializeImages();
         this.keyboardListener = new KeyboardListener();
         const playerSprites: HTMLImageElement[] = Player.PLAYER_SPRITES.map((key: string) => this.repo.getImage(key))
-        this.player = new Player(this.width / 3, 0, 0, playerSprites);
+        this.player = new Player(this.width / 3, 0, 0, 0, playerSprites);
     }
+
+
 
     /**
      * Method for creating all the sprites that will be used by this class
@@ -53,7 +55,6 @@ abstract class MenuLogic extends Logic {
             const instance = new MenuItem(x, this.height / 10 * 2.5, image);
             return instance;
         });
-
 
     }
 
@@ -145,7 +146,6 @@ abstract class MenuLogic extends Logic {
             }
         });
     }
-
 
 
 }

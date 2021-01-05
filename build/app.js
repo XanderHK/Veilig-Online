@@ -128,6 +128,9 @@ class Level extends Logic {
         const entries = Object.entries(config);
         this.initializePlatforms(entries);
         this.initializeSpikes(entries);
+        this.keyboardListener = new KeyboardListener();
+        const playerSprites = Player.PLAYER_SPRITES.map((key) => this.repo.getImage(key));
+        this.player = new Player(this.width / 3, 0, 8, 40, playerSprites);
     }
     initializePlatforms(entries) {
         const tileSprite = this.repo.getImage("tile");
@@ -141,6 +144,17 @@ class Level extends Logic {
         });
     }
     initializeSpikes(entries) {
+    }
+    movePlayer() {
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && this.player.xPos > -1) {
+            this.player.move(true);
+        }
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && this.player.xPos > 0) {
+            this.player.move(false);
+        }
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_UP) && this.player.xPos > 0) {
+            this.player.jump();
+        }
     }
 }
 class MenuLogic extends Logic {
@@ -158,7 +172,7 @@ class MenuLogic extends Logic {
         this.initializeImages();
         this.keyboardListener = new KeyboardListener();
         const playerSprites = Player.PLAYER_SPRITES.map((key) => this.repo.getImage(key));
-        this.player = new Player(this.width / 3, 0, 0, playerSprites);
+        this.player = new Player(this.width / 3, 0, 0, 0, playerSprites);
     }
     initializeImages() {
         this.speakers = [...Speaker.SPEAKER_SPRITES].map((key) => {
@@ -300,6 +314,7 @@ class MenuView extends MenuLogic {
 class View extends Level {
     constructor(config, ctx, repo, width, height) {
         super(config, repo, width, height);
+        this.currentPlayerImgIndex = { state: 0 };
         this.ctx = ctx;
     }
     drawLevel() {
@@ -307,19 +322,45 @@ class View extends Level {
         this.blocks.forEach((block) => {
             block.draw(this.ctx);
         });
+        this.movePlayer();
+        this.drawPlayer();
+        this.player.gravity();
+    }
+    nextAnimation(amountOfFrames) {
+        const statement = this._frames % amountOfFrames === 0;
+        return statement;
+    }
+    drawPlayer() {
+        if (this.nextAnimation(15)) {
+            if (this.currentPlayerImgIndex.state !== 0) {
+                this.currentPlayerImgIndex.state = 0;
+            }
+            else {
+                this.currentPlayerImgIndex.state = 1;
+            }
+        }
+        const next = this.currentPlayerImgIndex.state;
+        this.player.draw(this.ctx, next);
     }
 }
 class GameEntity {
-    constructor(x, y, velocity = 0) {
+    constructor(x, y, velocityX = 0, velocityY = 0) {
         this._xPos = x;
         this._yPos = y;
-        this._velocity = velocity;
+        this._velocityX = velocityX;
+        this._velocityY = velocityY;
     }
-    get velocity() {
-        return this._velocity;
+    get velocityX() {
+        return this._velocityX;
     }
-    set velocity(velocity) {
-        this._velocity = velocity;
+    set velocityX(velocity) {
+        this._velocityX = velocity;
+    }
+    get velocityY() {
+        return this._velocityY;
+    }
+    set velocityY(velocity) {
+        this._velocityY = velocity;
     }
     get yPos() {
         return this._yPos;
@@ -343,9 +384,17 @@ class Block extends GameEntity {
         ctx.drawImage(this.img, this.xPos, this.yPos);
     }
 }
+class Lava extends GameEntity {
+    constructor(x, y) {
+        super(x, y, 0);
+    }
+    draw(ctx) {
+        ctx.drawImage;
+    }
+}
 class MenuItem extends GameEntity {
     constructor(x, y, img) {
-        super(x, y, 0);
+        super(x, y);
         this.image = img;
     }
     draw(ctx) {
@@ -353,11 +402,19 @@ class MenuItem extends GameEntity {
     }
 }
 class Player extends GameEntity {
-    constructor(x, y, velocity, sprites) {
-        super(x, y, velocity);
+    constructor(x, y, velocityX, velocityY, sprites) {
+        super(x, y, velocityX, velocityY);
         this.images = sprites;
     }
-    move() {
+    move(direction) {
+        const nextXPos = this.xPos + (direction ? this.velocityX : -this.velocityX);
+        this.xPos = nextXPos;
+    }
+    jump() {
+        this.yPos -= this.velocityY;
+    }
+    gravity() {
+        this.yPos += this.velocityY / 2;
     }
     draw(ctx, state) {
         ctx.drawImage(this.images[state], this.xPos, this.yPos);
@@ -376,9 +433,10 @@ class Speaker extends GameEntity {
 Speaker.SPEAKER_SPRITES = ["not-muted.png", "muted.png"];
 class Spike extends GameEntity {
     constructor(x, y) {
-        super(x, y);
+        super(x, y, 0);
     }
     draw(ctx) {
+        ctx.drawImage;
     }
 }
 class ClickHandler {
