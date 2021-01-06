@@ -82,10 +82,14 @@ abstract class Level extends Logic {
      * 
      */
     private collidesWithLeftRightOrBottom() {
-        return this.blocks.map(block => {
+        const side = this.blocks.map(block => {
             return this.collidesWithSide(this.player, block);
-        }).find(side => side === CollisionState.Bottom || side === CollisionState.Left || side === CollisionState.Right) === undefined ? false : true
+        }).find(side => side === CollisionState.Bottom || side === CollisionState.Left || side === CollisionState.Right)
+
+        const boolValue = side === undefined ? true : false;
+        return [side, boolValue]
     }
+
 
     /**
      * Checks if the player collides with a side of a GameEntity
@@ -143,13 +147,17 @@ abstract class Level extends Logic {
      * 
      */
     protected movePlayer() {
-        const collidesWithNoneStandableSide: boolean = !this.collidesWithTopOfBlock();
-
-
+        const collidesWithStandableSide: boolean = this.collidesWithTopOfBlock();
+        const collidesWithNoneStandableSide = this.collidesWithLeftRightOrBottom();
+        console.log(collidesWithNoneStandableSide)
+        // 3
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT)) {
+            // if (collidesWithNoneStandableSide[0] !== CollisionState.Left) {
             this.player.move(true);
             this.changePlayerSprite(8, 13)
+            //}
         }
+        // 2
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT)) {
             this.player.move(false);
             this.changePlayerSprite(2, 7)
@@ -158,7 +166,7 @@ abstract class Level extends Logic {
             this.changePlayerSprite(0, 1)
         }
 
-        if (collidesWithNoneStandableSide) {
+        if (!collidesWithStandableSide) {
             if (!this.hitsBottom()) {
                 this.player.gravity();
             } else {

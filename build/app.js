@@ -88,6 +88,7 @@ class Game {
             "level2.png",
             "level3.png",
             "tile.png",
+            "Background_level1.png",
             ...Speaker.SPEAKER_SPRITES
         ].concat(Array(37).fill(null).map((e, i) => `background/${i}.jpg`)).concat(Player.PLAYER_SPRITES.map((sprite) => `player/${sprite}`));
         this.repo = new ImageLoader(this.repoKeys, Game.IMG_PATH);
@@ -197,9 +198,11 @@ class Level extends Logic {
         }).find(side => side === CollisionState.Top) === undefined ? false : true;
     }
     collidesWithLeftRightOrBottom() {
-        return this.blocks.map(block => {
+        const side = this.blocks.map(block => {
             return this.collidesWithSide(this.player, block);
-        }).find(side => side === CollisionState.Bottom || side === CollisionState.Left || side === CollisionState.Right) === undefined ? false : true;
+        }).find(side => side === CollisionState.Bottom || side === CollisionState.Left || side === CollisionState.Right);
+        const boolValue = side === undefined ? true : false;
+        return [side, boolValue];
     }
     collidesWithSide(player, entity) {
         const dx = (player.xPos + this.repo.getImage("main_char_1").width / 2) - (entity.xPos + this.repo.getImage("tile").width / 2);
@@ -236,7 +239,9 @@ class Level extends Logic {
         return this.player.yPos + this.repo.getImage("main_char_1").height >= this.height;
     }
     movePlayer() {
-        const collidesWithNoneStandableSide = !this.collidesWithTopOfBlock();
+        const collidesWithStandableSide = this.collidesWithTopOfBlock();
+        const collidesWithNoneStandableSide = this.collidesWithLeftRightOrBottom();
+        console.log(collidesWithNoneStandableSide);
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT)) {
             this.player.move(true);
             this.changePlayerSprite(8, 13);
@@ -248,7 +253,7 @@ class Level extends Logic {
         if (!this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && !(this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT))) {
             this.changePlayerSprite(0, 1);
         }
-        if (collidesWithNoneStandableSide) {
+        if (!collidesWithStandableSide) {
             if (!this.hitsBottom()) {
                 this.player.gravity();
             }
@@ -358,7 +363,7 @@ class MenuLogic extends Logic {
         return next;
     }
     changeBackground() {
-        if (this.animate(27)) {
+        if (this.animate(50)) {
             this.backgroundFrame.key = String(Number(this.backgroundFrame.key) + 1);
             if (Number(this.backgroundFrame.key) >= MenuLogic.AMOUNT_OF_FRAMES) {
                 this.backgroundFrame.key = String(0);
@@ -432,9 +437,14 @@ class View extends Level {
         this.ctx = ctx;
     }
     drawLevel() {
+        this.drawBackGround();
         this.drawBlocks();
         this.movePlayer();
         this.drawPlayer();
+    }
+    drawBackGround() {
+        const background = this.repo.getImage("Background_level1");
+        this.ctx.drawImage(background, (this.width / 2) - (background.width / 2), (this.height / 2) - (background.height / 2), background.width, background.height);
     }
     drawBlocks() {
         this.blocks.forEach((block) => {

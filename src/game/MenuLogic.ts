@@ -139,7 +139,7 @@ abstract class MenuLogic extends Logic {
      * 
      */
     protected changeBackground() {
-        if (this.animate(27)) {
+        if (this.animate(50)) {
             this.backgroundFrame.key = String(Number(this.backgroundFrame.key) + 1);
             if (Number(this.backgroundFrame.key) >= MenuLogic.AMOUNT_OF_FRAMES) {
                 this.backgroundFrame.key = String(0);
