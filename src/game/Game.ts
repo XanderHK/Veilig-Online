@@ -67,11 +67,9 @@ class Game {
             "level1.png",
             "level2.png",
             "level3.png",
-            "player/main_char_1.png",
-            "player/main_char_2.png",
             "tile.png",
             ...Speaker.SPEAKER_SPRITES
-        ].concat(Array(37).fill(null).map((e, i) => `background/${i}.jpg`));
+        ].concat(Array(37).fill(null).map((e, i) => `background/${i}.jpg`)).concat(Player.PLAYER_SPRITES.map((sprite) => `player/${sprite}`));
         this.repo = new ImageLoader(this.repoKeys, Game.IMG_PATH);
     }
 

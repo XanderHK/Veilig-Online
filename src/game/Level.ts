@@ -3,6 +3,7 @@ abstract class Level extends Logic {
 
     private keyboardListener: KeyboardListener;
     private lastFrameAfterJump: number;
+    private currentPlayerImgIndex: { state: number } = { state: 0 };
 
     protected name: string;
 
@@ -58,10 +59,16 @@ abstract class Level extends Logic {
     }
 
 
-    private collidesWithSideOfBlock() {
+    private collidesWithTopOfBlock() {
         return this.blocks.map(block => {
             return this.collidesWithSide(this.player, block)
-        }).find(side => side === CollisionState.Top) === undefined ? true : false;
+        }).find(side => side === CollisionState.Top) === undefined ? false : true;
+    }
+
+    private collidesWithLeftRightOrBottom() {
+        return this.blocks.map(block => {
+            return this.collidesWithSide(this.player, block);
+        }).find(side => side === CollisionState.Bottom || side === CollisionState.Left || side === CollisionState.Right) === undefined ? false : true
     }
 
     /**
@@ -87,18 +94,39 @@ abstract class Level extends Logic {
         return (collision);
     }
 
-    protected movePlayer() {
-        const collidesWithNoneStandableSide: boolean = this.collidesWithSideOfBlock();
-        if (collidesWithNoneStandableSide) {
-            this.player.gravity();
+    private changePlayerSprite(start: number, end: number) {
+        if (this.animate(166)) {
+            if (this.currentPlayerImgIndex.state !== start) {
+                this.currentPlayerImgIndex.state = start;
+            } else {
+                this.currentPlayerImgIndex.state = end;
+            }
         }
+    }
+
+    protected get playerImageIndex(): number {
+        return this.currentPlayerImgIndex.state;
+    }
+
+    protected movePlayer() {
+        console.log(this.animate(166));
+        const collidesWithNoneStandableSide: boolean = !this.collidesWithTopOfBlock();
+
 
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && this.player.xPos > -1) {
             this.player.move(true);
+            this.changePlayerSprite(8, 13)
         }
-
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && this.player.xPos > 0) {
             this.player.move(false);
+            this.changePlayerSprite(2, 7)
+
+        } if (!this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && !(this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT))) {
+            this.changePlayerSprite(0, 1)
+        }
+
+        if (collidesWithNoneStandableSide) {
+            this.player.gravity();
         }
 
         // 500 ms 

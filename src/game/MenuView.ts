@@ -2,7 +2,6 @@
 class MenuView extends MenuLogic {
 
     private ctx: CanvasRenderingContext2D;
-    private backgroundFrame: { frame: HTMLImageElement, key: string };
 
     public constructor(
         repo: ImageLoader,
@@ -13,7 +12,6 @@ class MenuView extends MenuLogic {
     ) {
         super(width, height, repo);
         this.ctx = ctx;
-        this.backgroundFrame = { frame: this.repo.getImage("0"), key: "0" };
     }
 
     /**
@@ -30,14 +28,7 @@ class MenuView extends MenuLogic {
     * Method for drawing the player
     */
     private drawPlayer() {
-        if (this.nextAnimation(15)) {
-            if (this.currentPlayerImgIndex.state !== 0) {
-                this.currentPlayerImgIndex.state = 0;
-            } else {
-                this.currentPlayerImgIndex.state = 1;
-            }
-        }
-        const next = this.currentPlayerImgIndex.state;
+        const next = this.changeSprite();
         const levelObjHeight = this.repo.getImage("level1").height;
         const playerPos = this.height / 10 * 2.3 + levelObjHeight;
         this.player.yPos = playerPos - this.repo.getImage(`main_char_${next + 1}`).height
@@ -64,17 +55,10 @@ class MenuView extends MenuLogic {
    * Method for drawing the background
    */
     private drawBackGround() {
-        if (this.nextAnimation(3)) {
-            this.backgroundFrame.key = String(Number(this.backgroundFrame.key) + 1);
-            if (Number(this.backgroundFrame.key) >= MenuLogic.AMOUNT_OF_FRAMES) {
-                this.backgroundFrame.key = String(0);
-            }
-            this.backgroundFrame.frame = this.repo.getImage(this.backgroundFrame.key);
-        }
         const background = this.repo.getImage("earth");
         background.width = 300;
         background.height = 300;
-        this.ctx.drawImage(this.backgroundFrame.frame, 0, 0, this.width, this.height)
+        this.ctx.drawImage(this.changeBackground(), 0, 0, this.width, this.height)
         this.ctx.drawImage(background, (this.width / 2) - (background.width / 2), (this.height / 2) - (background.height / 2), background.width, background.height);
     }
 

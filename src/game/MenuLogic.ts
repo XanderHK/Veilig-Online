@@ -7,6 +7,8 @@ abstract class MenuLogic extends Logic {
     private keyboardListener: KeyboardListener;
     private backgroundAudio: HTMLAudioElement;
     private canJump: { right: boolean, left: boolean } = { right: true, left: true }
+    private currentPlayerImgIndex: { state: number } = { state: 0 };
+    private backgroundFrame: { frame: HTMLImageElement, key: string };
 
     protected player: Player;
     protected menuItems: MenuItem[] = [];
@@ -15,7 +17,6 @@ abstract class MenuLogic extends Logic {
     protected width: number;
     protected height: number;
 
-    protected currentPlayerImgIndex: { state: number } = { state: 0 };
     protected audio: boolean = true;
 
 
@@ -31,6 +32,7 @@ abstract class MenuLogic extends Logic {
         this.height = height;
         this.backgroundAudio = new Audio(MenuLogic.MENU_MUSIC);
         this.backgroundAudio.loop = true;
+        this.backgroundFrame = { frame: this.repo.getImage("0"), key: "0" };
 
         this.initializeImages();
         this.keyboardListener = new KeyboardListener();
@@ -116,6 +118,30 @@ abstract class MenuLogic extends Logic {
             })
         }
         return returnValue;
+    }
+
+
+    protected changeSprite() {
+        if (this.animate(250)) {
+            if (this.currentPlayerImgIndex.state !== 0) {
+                this.currentPlayerImgIndex.state = 0;
+            } else {
+                this.currentPlayerImgIndex.state = 1;
+            }
+        }
+        const next = this.currentPlayerImgIndex.state;
+        return next;
+    }
+
+    protected changeBackground() {
+        if (this.animate(27)) {
+            this.backgroundFrame.key = String(Number(this.backgroundFrame.key) + 1);
+            if (Number(this.backgroundFrame.key) >= MenuLogic.AMOUNT_OF_FRAMES) {
+                this.backgroundFrame.key = String(0);
+            }
+            this.backgroundFrame.frame = this.repo.getImage(this.backgroundFrame.key);
+        }
+        return this.backgroundFrame.frame
     }
 
     /**

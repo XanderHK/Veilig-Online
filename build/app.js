@@ -59,11 +59,9 @@ class Game {
             "level1.png",
             "level2.png",
             "level3.png",
-            "player/main_char_1.png",
-            "player/main_char_2.png",
             "tile.png",
             ...Speaker.SPEAKER_SPRITES
-        ].concat(Array(37).fill(null).map((e, i) => `background/${i}.jpg`));
+        ].concat(Array(37).fill(null).map((e, i) => `background/${i}.jpg`)).concat(Player.PLAYER_SPRITES.map((sprite) => `player/${sprite}`));
         this.repo = new ImageLoader(this.repoKeys, Game.IMG_PATH);
     }
     initializeCanvas(canvas) {
@@ -122,10 +120,7 @@ class Logic {
     }
     animate(ms) {
         const timePerFrameSec = 1000 / window.fps;
-        const statement = this._frames % (ms / timePerFrameSec) === 0;
-        return statement;
-    }
-    nextAnimation(amountOfFrames) {
+        const amountOfFrames = Math.floor(ms / timePerFrameSec);
         const statement = this._frames % amountOfFrames === 0;
         return statement;
     }
@@ -133,6 +128,7 @@ class Logic {
 class Level extends Logic {
     constructor(config, repo, width, height) {
         super(repo);
+        this.currentPlayerImgIndex = { state: 0 };
         this.blocks = [];
         this.spikes = [];
         this.height = height;
@@ -167,10 +163,15 @@ class Level extends Logic {
         });
         return bools.find(bool => bool === true) === undefined ? false : true;
     }
-    collidesWithSideOfBlock() {
+    collidesWithTopOfBlock() {
         return this.blocks.map(block => {
             return this.collidesWithSide(this.player, block);
-        }).find(side => side === CollisionState.Top) === undefined ? true : false;
+        }).find(side => side === CollisionState.Top) === undefined ? false : true;
+    }
+    collidesWithLeftRightOrBottom() {
+        return this.blocks.map(block => {
+            return this.collidesWithSide(this.player, block);
+        }).find(side => side === CollisionState.Bottom || side === CollisionState.Left || side === CollisionState.Right) === undefined ? false : true;
     }
     collidesWithSide(player, entity) {
         const dx = (player.xPos + this.repo.getImage("main_char_1").width / 2) - (entity.xPos + this.repo.getImage("tile").width / 2);
@@ -190,16 +191,35 @@ class Level extends Logic {
         }
         return (collision);
     }
-    movePlayer() {
-        const collidesWithNoneStandableSide = this.collidesWithSideOfBlock();
-        if (collidesWithNoneStandableSide) {
-            this.player.gravity();
+    changePlayerSprite(start, end) {
+        if (this.animate(166)) {
+            if (this.currentPlayerImgIndex.state !== start) {
+                this.currentPlayerImgIndex.state = start;
+            }
+            else {
+                this.currentPlayerImgIndex.state = end;
+            }
         }
+    }
+    get playerImageIndex() {
+        return this.currentPlayerImgIndex.state;
+    }
+    movePlayer() {
+        console.log(this.animate(166));
+        const collidesWithNoneStandableSide = !this.collidesWithTopOfBlock();
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && this.player.xPos > -1) {
             this.player.move(true);
+            this.changePlayerSprite(8, 13);
         }
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && this.player.xPos > 0) {
             this.player.move(false);
+            this.changePlayerSprite(2, 7);
+        }
+        if (!this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && !(this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT))) {
+            this.changePlayerSprite(0, 1);
+        }
+        if (collidesWithNoneStandableSide) {
+            this.player.gravity();
         }
         const timeIntervalInFrames = window.fps / 2;
         if (this.lastFrameAfterJump === undefined || this.frames > this.lastFrameAfterJump + timeIntervalInFrames) {
@@ -217,14 +237,15 @@ class MenuLogic extends Logic {
     constructor(width, height, repo) {
         super(repo);
         this.canJump = { right: true, left: true };
+        this.currentPlayerImgIndex = { state: 0 };
         this.menuItems = [];
         this.speakers = [];
-        this.currentPlayerImgIndex = { state: 0 };
         this.audio = true;
         this.width = width;
         this.height = height;
         this.backgroundAudio = new Audio(MenuLogic.MENU_MUSIC);
         this.backgroundAudio.loop = true;
+        this.backgroundFrame = { frame: this.repo.getImage("0"), key: "0" };
         this.initializeImages();
         this.keyboardListener = new KeyboardListener();
         const playerSprites = Player.PLAYER_SPRITES.map((key) => this.repo.getImage(key));
@@ -288,6 +309,28 @@ class MenuLogic extends Logic {
         }
         return returnValue;
     }
+    changeSprite() {
+        if (this.animate(250)) {
+            if (this.currentPlayerImgIndex.state !== 0) {
+                this.currentPlayerImgIndex.state = 0;
+            }
+            else {
+                this.currentPlayerImgIndex.state = 1;
+            }
+        }
+        const next = this.currentPlayerImgIndex.state;
+        return next;
+    }
+    changeBackground() {
+        if (this.animate(27)) {
+            this.backgroundFrame.key = String(Number(this.backgroundFrame.key) + 1);
+            if (Number(this.backgroundFrame.key) >= MenuLogic.AMOUNT_OF_FRAMES) {
+                this.backgroundFrame.key = String(0);
+            }
+            this.backgroundFrame.frame = this.repo.getImage(this.backgroundFrame.key);
+        }
+        return this.backgroundFrame.frame;
+    }
     mute() {
         window.addEventListener("click", event => {
             const referenceImg = this.repo.getImage("muted");
@@ -306,7 +349,6 @@ class MenuView extends MenuLogic {
     constructor(repo, ctx, width, height) {
         super(width, height, repo);
         this.ctx = ctx;
-        this.backgroundFrame = { frame: this.repo.getImage("0"), key: "0" };
     }
     drawInstructions() {
         const instructionText = "PRESS ENTER TO START LEVEL";
@@ -315,15 +357,7 @@ class MenuView extends MenuLogic {
         instructions.drawText(this.ctx);
     }
     drawPlayer() {
-        if (this.nextAnimation(15)) {
-            if (this.currentPlayerImgIndex.state !== 0) {
-                this.currentPlayerImgIndex.state = 0;
-            }
-            else {
-                this.currentPlayerImgIndex.state = 1;
-            }
-        }
-        const next = this.currentPlayerImgIndex.state;
+        const next = this.changeSprite();
         const levelObjHeight = this.repo.getImage("level1").height;
         const playerPos = this.height / 10 * 2.3 + levelObjHeight;
         this.player.yPos = playerPos - this.repo.getImage(`main_char_${next + 1}`).height;
@@ -339,17 +373,10 @@ class MenuView extends MenuLogic {
         this.speakers[speakerSpriteIndex].draw(this.ctx);
     }
     drawBackGround() {
-        if (this.nextAnimation(3)) {
-            this.backgroundFrame.key = String(Number(this.backgroundFrame.key) + 1);
-            if (Number(this.backgroundFrame.key) >= MenuLogic.AMOUNT_OF_FRAMES) {
-                this.backgroundFrame.key = String(0);
-            }
-            this.backgroundFrame.frame = this.repo.getImage(this.backgroundFrame.key);
-        }
         const background = this.repo.getImage("earth");
         background.width = 300;
         background.height = 300;
-        this.ctx.drawImage(this.backgroundFrame.frame, 0, 0, this.width, this.height);
+        this.ctx.drawImage(this.changeBackground(), 0, 0, this.width, this.height);
         this.ctx.drawImage(background, (this.width / 2) - (background.width / 2), (this.height / 2) - (background.height / 2), background.width, background.height);
     }
     drawMenu() {
@@ -366,7 +393,6 @@ class MenuView extends MenuLogic {
 class View extends Level {
     constructor(config, ctx, repo, width, height) {
         super(config, repo, width, height);
-        this.currentPlayerImgIndex = { state: 0 };
         this.ctx = ctx;
     }
     drawLevel() {
@@ -377,16 +403,7 @@ class View extends Level {
         this.drawPlayer();
     }
     drawPlayer() {
-        if (this.nextAnimation(15)) {
-            if (this.currentPlayerImgIndex.state !== 0) {
-                this.currentPlayerImgIndex.state = 0;
-            }
-            else {
-                this.currentPlayerImgIndex.state = 1;
-            }
-        }
-        const next = this.currentPlayerImgIndex.state;
-        this.player.draw(this.ctx, next);
+        this.player.draw(this.ctx, this.playerImageIndex);
     }
 }
 class GameEntity {
@@ -466,7 +483,8 @@ class Player extends GameEntity {
         ctx.drawImage(this.images[state], this.xPos, this.yPos);
     }
 }
-Player.PLAYER_SPRITES = [`main_char_1.png`, `main_char_2.png`];
+Player.PLAYER_SPRITES = [`main_char_1.png`, `main_char_2.png`, `run-left1.png`, `run-left2.png`, `run-left3.png`, `run-left4.png`, `run-left5.png`, `run-left6.png`,
+    `run-right1.png`, `run-right2.png`, `run-right3.png`, `run-right4.png`, `run-right5.png`, `run-right6.png`];
 class Speaker extends GameEntity {
     constructor(x, y, velocity, img) {
         super(x, y, velocity);
