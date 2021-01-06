@@ -120,7 +120,9 @@ abstract class MenuLogic extends Logic {
         return returnValue;
     }
 
-
+    /**
+     * 
+     */
     protected changeSprite() {
         if (this.animate(250)) {
             if (this.currentPlayerImgIndex.state !== 0) {
@@ -133,6 +135,9 @@ abstract class MenuLogic extends Logic {
         return next;
     }
 
+    /**
+     * 
+     */
     protected changeBackground() {
         if (this.animate(27)) {
             this.backgroundFrame.key = String(Number(this.backgroundFrame.key) + 1);

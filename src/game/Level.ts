@@ -29,6 +29,10 @@ abstract class Level extends Logic {
 
     }
 
+    /**
+     * 
+     * @param entries 
+     */
     private initializePlatforms(entries: [string, any][]) {
         const tileSprite = this.repo.getImage("tile");
         this.name = String(entries.find((entry) => entry[0] === "name")[1]);
@@ -41,10 +45,17 @@ abstract class Level extends Logic {
         });
     }
 
+    /**
+     * 
+     * @param entries 
+     */
     private initializeSpikes(entries: [string, any][]) {
 
     }
 
+    /**
+     * 
+     */
     private playerCollidesWithBlock() {
         // Collision detection of objects and player
         // Use the bounding box detection method: https://computersciencewiki.org/index.php/Bounding_boxes
@@ -58,13 +69,18 @@ abstract class Level extends Logic {
         return bools.find(bool => bool === true) === undefined ? false : true
     }
 
-
+    /**
+     * 
+     */
     private collidesWithTopOfBlock() {
         return this.blocks.map(block => {
             return this.collidesWithSide(this.player, block)
         }).find(side => side === CollisionState.Top) === undefined ? false : true;
     }
 
+    /**
+     * 
+     */
     private collidesWithLeftRightOrBottom() {
         return this.blocks.map(block => {
             return this.collidesWithSide(this.player, block);
@@ -94,6 +110,11 @@ abstract class Level extends Logic {
         return (collision);
     }
 
+    /**
+     * 
+     * @param start 
+     * @param end 
+     */
     private changePlayerSprite(start: number, end: number) {
         if (this.animate(166)) {
             if (this.currentPlayerImgIndex.state !== start) {
@@ -104,20 +125,32 @@ abstract class Level extends Logic {
         }
     }
 
+    /**
+     * 
+     */
     protected get playerImageIndex(): number {
         return this.currentPlayerImgIndex.state;
     }
 
+    /**
+     * 
+     */
+    private hitsBottom() {
+        return this.player.yPos + this.repo.getImage("main_char_1").height >= this.height;
+    }
+
+    /**
+     * 
+     */
     protected movePlayer() {
-        console.log(this.animate(166));
         const collidesWithNoneStandableSide: boolean = !this.collidesWithTopOfBlock();
 
 
-        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && this.player.xPos > -1) {
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT)) {
             this.player.move(true);
             this.changePlayerSprite(8, 13)
         }
-        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && this.player.xPos > 0) {
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT)) {
             this.player.move(false);
             this.changePlayerSprite(2, 7)
 
@@ -126,10 +159,14 @@ abstract class Level extends Logic {
         }
 
         if (collidesWithNoneStandableSide) {
-            this.player.gravity();
+            if (!this.hitsBottom()) {
+                this.player.gravity();
+            } else {
+                this.player.xPos = this.blocks[0].xPos + this.repo.getImage("main_char_1").width;
+                this.player.yPos = this.blocks[0].yPos - this.repo.getImage("main_char_1").height;
+            }
         }
 
-        // 500 ms 
         const timeIntervalInFrames = window.fps / 2
         if (this.lastFrameAfterJump === undefined || this.frames > this.lastFrameAfterJump + timeIntervalInFrames) {
             if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_UP) && this.player.xPos > 0) {

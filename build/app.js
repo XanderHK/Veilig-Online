@@ -204,14 +204,16 @@ class Level extends Logic {
     get playerImageIndex() {
         return this.currentPlayerImgIndex.state;
     }
+    hitsBottom() {
+        return this.player.yPos + this.repo.getImage("main_char_1").height >= this.height;
+    }
     movePlayer() {
-        console.log(this.animate(166));
         const collidesWithNoneStandableSide = !this.collidesWithTopOfBlock();
-        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && this.player.xPos > -1) {
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT)) {
             this.player.move(true);
             this.changePlayerSprite(8, 13);
         }
-        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && this.player.xPos > 0) {
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT)) {
             this.player.move(false);
             this.changePlayerSprite(2, 7);
         }
@@ -219,7 +221,13 @@ class Level extends Logic {
             this.changePlayerSprite(0, 1);
         }
         if (collidesWithNoneStandableSide) {
-            this.player.gravity();
+            if (!this.hitsBottom()) {
+                this.player.gravity();
+            }
+            else {
+                this.player.xPos = this.blocks[0].xPos + this.repo.getImage("main_char_1").width;
+                this.player.yPos = this.blocks[0].yPos - this.repo.getImage("main_char_1").height;
+            }
         }
         const timeIntervalInFrames = window.fps / 2;
         if (this.lastFrameAfterJump === undefined || this.frames > this.lastFrameAfterJump + timeIntervalInFrames) {
@@ -396,11 +404,14 @@ class View extends Level {
         this.ctx = ctx;
     }
     drawLevel() {
+        this.drawBlocks();
+        this.movePlayer();
+        this.drawPlayer();
+    }
+    drawBlocks() {
         this.blocks.forEach((block) => {
             block.draw(this.ctx);
         });
-        this.movePlayer();
-        this.drawPlayer();
     }
     drawPlayer() {
         this.player.draw(this.ctx, this.playerImageIndex);
@@ -443,6 +454,9 @@ class Block extends GameEntity {
         super(x, y);
         this.img = img;
     }
+    get sprite() {
+        return this.img;
+    }
     draw(ctx) {
         ctx.drawImage(this.img, this.xPos, this.yPos);
     }
@@ -478,6 +492,9 @@ class Player extends GameEntity {
     }
     gravity() {
         this.yPos += this.velocityY / 2;
+    }
+    get sprites() {
+        return this.images;
     }
     draw(ctx, state) {
         ctx.drawImage(this.images[state], this.xPos, this.yPos);

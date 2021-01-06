@@ -8,14 +8,29 @@ class View extends Level {
         this.ctx = ctx;
     }
 
+    /**
+     * 
+     */
     public drawLevel() {
-        this.blocks.forEach((block: Block) => {
-            block.draw(this.ctx);
-        })
+        this.drawBlocks();
         this.movePlayer();
         this.drawPlayer();
     }
 
+
+
+    /**
+     * 
+     */
+    private drawBlocks() {
+        this.blocks.forEach((block: Block) => {
+            block.draw(this.ctx);
+        });
+    }
+
+    /**
+     * 
+     */
     private drawPlayer() {
         this.player.draw(this.ctx, this.playerImageIndex)
     }

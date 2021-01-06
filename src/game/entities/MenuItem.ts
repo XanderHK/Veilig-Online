@@ -7,6 +7,10 @@ class MenuItem extends GameEntity {
         this.image = img;
     }
 
+    /**
+     * 
+     * @param ctx 
+     */
     public draw(ctx: CanvasRenderingContext2D) {
         ctx.drawImage(this.image, this.xPos, this.yPos)
     }

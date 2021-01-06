@@ -3,6 +3,7 @@
  */
 class Game {
 
+    // Class constants
     public static readonly IMG_PATH = "./assets/img/";
     public static readonly AUDIO_PATH = "./assets/audio/";
     public static readonly AMOUNT_OF_LEVELS = 3;
