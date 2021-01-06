@@ -49,11 +49,40 @@ class Game {
             const config: Config = {
                 name: `level ${i + 1}`,
                 platforms: [
-                    { xStart: 0, xEnd: 600, yStart: 250, yEnd: 200 },
-                    { xStart: 550, xEnd: 650, yStart: 100, yEnd: 200 },
-                    { xStart: 750, xEnd: 800, yStart: 250, yEnd: 200 }
+                    { xStart: 0, xEnd: 200, yStart: 700, yEnd: 750 },
+                    { xStart: 300, xEnd: 400, yStart: 650, yEnd: 700 },
+                    { xStart: 500, xEnd: 550, yStart: 600, yEnd: 650 },
+                    { xStart: 650, xEnd: 700, yStart: 550, yEnd: 600 },
+                    { xStart: 800, xEnd: 850, yStart: 500, yEnd: 550 },
+                    { xStart: 900, xEnd: 950, yStart: 450, yEnd: 550 },
+                    { xStart: 950, xEnd: 1000, yStart: 450, yEnd: 550 },
+                    { xStart: 950, xEnd: 1000, yStart: 400, yEnd: 550 },
+                    { xStart: 950, xEnd: 1000, yStart: 350, yEnd: 550 },
+                    { xStart: 950, xEnd: 1000, yStart: 300, yEnd: 550 },
+                    { xStart: 850, xEnd: 900, yStart: 250, yEnd: 550 },
+                    { xStart: 800, xEnd: 850, yStart: 250, yEnd: 550 },
+                    { xStart: 650, xEnd: 700, yStart: 250, yEnd: 550 },
+                    { xStart: 600, xEnd: 650, yStart: 250, yEnd: 550 },
+                    { xStart: 600, xEnd: 650, yStart: 200, yEnd: 550 },
+                    { xStart: 550, xEnd: 600, yStart: 250, yEnd: 550 },
+                    { xStart: 400, xEnd: 450, yStart: 200, yEnd: 550 },
+                    { xStart: 200, xEnd: 250, yStart: 150, yEnd: 550 },
+                    { xStart: 150, xEnd: 200, yStart: 150, yEnd: 550 },
+                    { xStart: 100, xEnd: 150, yStart: 150, yEnd: 550 },
+                    { xStart: 50, xEnd: 100, yStart: 150, yEnd: 550 },
+                    { xStart: 1100, xEnd: 1150, yStart: 250, yEnd: 550 },
+                    { xStart: 1150, xEnd: 1200, yStart: 250, yEnd: 550 },
+                    { xStart: 1250, xEnd: 1300, yStart: 350, yEnd: 550 },
+                    { xStart: 1150, xEnd: 1200, yStart: 400, yEnd: 550 },
+                    { xStart: 1250, xEnd: 1300, yStart: 450, yEnd: 550 },
+                    { xStart: 1150, xEnd: 1200, yStart: 500, yEnd: 550 },
+                    { xStart: 1250, xEnd: 1300, yStart: 550, yEnd: 550 },
+                    { xStart: 1150, xEnd: 1200, yStart: 600, yEnd: 550 },
+                    { xStart: 1250, xEnd: 1300, yStart: 650, yEnd: 550 },
+                    { xStart: 1300, xEnd: 1300, yStart: 650, yEnd: 550 },
+
                 ],
-                spikes: [{ xStart: 0, xEnd: 500, yStart: 100, yEnd: 200 }]
+                spikes: [{ xStart: 0, xEnd: 1950, yStart: 900, yEnd: 1050 }]
             }
             this.LevelViews.push(new View(config, this.ctx, this.repo, this.canvas.width, this.canvas.height))
         }
