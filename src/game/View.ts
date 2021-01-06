@@ -12,11 +12,16 @@ class View extends Level {
      * 
      */
     public drawLevel() {
+        this.drawBackGround();
         this.drawBlocks();
         this.movePlayer();
         this.drawPlayer();
     }
 
+    private drawBackGround() {
+        const background = this.repo.getImage("Background_level1");
+        this.ctx.drawImage(background, (this.width / 2) - (background.width / 2), (this.height / 2) - (background.height / 2), background.width, background.height);
+    }
 
 
     /**
