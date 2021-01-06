@@ -44,8 +44,9 @@ class Game {
             const config = {
                 name: `level ${i + 1}`,
                 platforms: [
-                    { xStart: 0, xEnd: 500, yStart: 100, yEnd: 200 },
-                    { xStart: 0, xEnd: 100, yStart: 200, yEnd: 200 }
+                    { xStart: 0, xEnd: 600, yStart: 250, yEnd: 200 },
+                    { xStart: 550, xEnd: 650, yStart: 100, yEnd: 200 },
+                    { xStart: 750, xEnd: 800, yStart: 250, yEnd: 200 }
                 ],
                 spikes: [{ xStart: 0, xEnd: 500, yStart: 100, yEnd: 200 }]
             };
@@ -108,10 +109,16 @@ Game.AMOUNT_OF_LEVELS = 3;
 class Logic {
     constructor(repo) {
         this._frames = 0;
-        this.repo = repo;
+        this._repo = repo;
+    }
+    get repo() {
+        return this._repo;
     }
     set frames(frame) {
         this._frames = frame;
+    }
+    get frames() {
+        return this._frames;
     }
     animate(ms) {
         const timePerFrameSec = 1000 / window.fps;
@@ -135,13 +142,13 @@ class Level extends Logic {
         this.initializeSpikes(entries);
         this.keyboardListener = new KeyboardListener();
         const playerSprites = Player.PLAYER_SPRITES.map((key) => this.repo.getImage(key));
-        this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("tile").height, 8, 10, playerSprites);
+        this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 8, 10, playerSprites);
     }
     initializePlatforms(entries) {
         const tileSprite = this.repo.getImage("tile");
         this.name = String(entries.find((entry) => entry[0] === "name")[1]);
         Object.values(entries.find(entry => entry[0] === "platforms")[1]).forEach((settings, i) => {
-            const amountOfTiles = Math.floor(settings.xEnd / tileSprite.width);
+            const amountOfTiles = Math.floor((settings.xEnd - settings.xStart) / tileSprite.width);
             for (let i = 0; i < amountOfTiles; i++) {
                 this.blocks.push(new Block(settings.xStart, settings.yStart, tileSprite));
                 settings.xStart += tileSprite.width;
@@ -150,23 +157,42 @@ class Level extends Logic {
     }
     initializeSpikes(entries) {
     }
-    playerIsOnBlock() {
-        const isOnBlock = this.blocks.map((block) => {
-            const statement = this.player.xPos + this.repo.getImage("main_char_1").width > block.xPos + this.repo.getImage("tile").width;
+    playerCollidesWithBlock() {
+        const bools = this.blocks.map(block => {
+            const statement = (block.xPos < this.player.xPos + this.repo.getImage("main_char_1").width
+                && block.xPos > this.player.xPos
+                && block.yPos < this.player.yPos + this.repo.getImage("main_char_1").height
+                && block.yPos + this.repo.getImage("tile").height > this.player.yPos);
             return statement;
         });
-        return (isOnBlock.find(bool => bool === false) === undefined ? true : false);
+        return bools.find(bool => bool === true) === undefined ? false : true;
     }
-    playerIsAboveBlock() {
-        const aboveBlock = this.blocks.map((block) => {
-            return this.player.yPos < block.yPos - this.repo.getImage("tile").height;
-        }).every(e => e === true);
-        return aboveBlock;
+    collidesWithSideOfBlock() {
+        return this.blocks.map(block => {
+            return this.collidesWithSide(this.player, block);
+        }).find(side => side === CollisionState.Top) === undefined ? true : false;
+    }
+    collidesWithSide(player, entity) {
+        const dx = (player.xPos + this.repo.getImage("main_char_1").width / 2) - (entity.xPos + this.repo.getImage("tile").width / 2);
+        const dy = (player.yPos + this.repo.getImage("main_char_1").height / 2) - (entity.yPos + this.repo.getImage("tile").height / 2);
+        const width = (this.repo.getImage("main_char_1").width + this.repo.getImage("tile").width) / 2;
+        const height = (this.repo.getImage("main_char_1").height + this.repo.getImage("tile").height) / 2;
+        const crossWidth = width * dy;
+        const crossHeight = height * dx;
+        let collision = CollisionState.None;
+        if (Math.abs(dx) <= width && Math.abs(dy) <= height) {
+            if (crossWidth > crossHeight) {
+                collision = (crossWidth > (-crossHeight)) ? CollisionState.Bottom : CollisionState.Left;
+            }
+            else {
+                collision = (crossWidth > -(crossHeight)) ? CollisionState.Right : CollisionState.Top;
+            }
+        }
+        return (collision);
     }
     movePlayer() {
-        const onBlock = this.playerIsOnBlock();
-        const aboveBlock = this.playerIsAboveBlock();
-        if (onBlock || aboveBlock) {
+        const collidesWithNoneStandableSide = this.collidesWithSideOfBlock();
+        if (collidesWithNoneStandableSide) {
             this.player.gravity();
         }
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && this.player.xPos > -1) {
@@ -175,10 +201,15 @@ class Level extends Logic {
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && this.player.xPos > 0) {
             this.player.move(false);
         }
-        if (!onBlock) {
+        const timeIntervalInFrames = window.fps / 2;
+        if (this.lastFrameAfterJump === undefined || this.frames > this.lastFrameAfterJump + timeIntervalInFrames) {
             if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_UP) && this.player.xPos > 0) {
+                this.lastFrameAfterJump = this.frames;
                 this.player.jump();
             }
+        }
+        else if (this.frames < this.lastFrameAfterJump + timeIntervalInFrames / 3) {
+            this.player.jump();
         }
     }
 }
@@ -339,7 +370,6 @@ class View extends Level {
         this.ctx = ctx;
     }
     drawLevel() {
-        new TextString(this.width / 2, this.height / 2, this.name).drawText(this.ctx);
         this.blocks.forEach((block) => {
             block.draw(this.ctx);
         });
@@ -538,6 +568,14 @@ class TextString {
         ctx.restore();
     }
 }
+var CollisionState;
+(function (CollisionState) {
+    CollisionState[CollisionState["Top"] = 0] = "Top";
+    CollisionState[CollisionState["Bottom"] = 1] = "Bottom";
+    CollisionState[CollisionState["Left"] = 2] = "Left";
+    CollisionState[CollisionState["Right"] = 3] = "Right";
+    CollisionState[CollisionState["None"] = 4] = "None";
+})(CollisionState || (CollisionState = {}));
 var GameState;
 (function (GameState) {
     GameState[GameState["Load"] = 0] = "Load";

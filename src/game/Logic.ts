@@ -1,14 +1,22 @@
 abstract class Logic {
 
-    protected _frames: number = 0;
-    protected repo: ImageLoader;
+    private _frames: number = 0;
+    private _repo: ImageLoader;
 
     public constructor(repo: ImageLoader) {
-        this.repo = repo;
+        this._repo = repo;
+    }
+
+    public get repo() {
+        return this._repo;
     }
 
     public set frames(frame: number) {
         this._frames = frame;
+    }
+
+    public get frames(): number {
+        return this._frames;
     }
 
     public animate(ms: number): boolean {
