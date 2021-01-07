@@ -241,14 +241,19 @@ class Level extends Logic {
     movePlayer() {
         const collidesWithStandableSide = this.collidesWithTopOfBlock();
         const collidesWithNoneStandableSide = this.collidesWithLeftRightOrBottom();
-        console.log(collidesWithNoneStandableSide);
+        const fullCollision = this.playerCollidesWithBlock();
+        console.log(fullCollision);
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT)) {
-            this.player.move(true);
-            this.changePlayerSprite(8, 13);
+            if (collidesWithNoneStandableSide[0] !== CollisionState.Left) {
+                this.player.move(true);
+                this.changePlayerSprite(8, 13);
+            }
         }
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT)) {
-            this.player.move(false);
-            this.changePlayerSprite(2, 7);
+            if (collidesWithNoneStandableSide[0] !== CollisionState.Right) {
+                this.player.move(false);
+                this.changePlayerSprite(2, 7);
+            }
         }
         if (!this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && !(this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT))) {
             this.changePlayerSprite(0, 1);
