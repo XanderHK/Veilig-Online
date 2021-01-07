@@ -14,9 +14,6 @@ abstract class MenuLogic extends Logic {
     protected menuItems: MenuItem[] = [];
     protected speakers: Speaker[] = [];
 
-    protected width: number;
-    protected height: number;
-
     protected audio: boolean = true;
 
 
@@ -27,9 +24,7 @@ abstract class MenuLogic extends Logic {
      * @param {number} height
      */
     public constructor(width: number, height: number, repo: ImageLoader) {
-        super(repo);
-        this.width = width;
-        this.height = height;
+        super(repo, width, height);
         this.backgroundAudio = new Audio(MenuLogic.MENU_MUSIC);
         this.backgroundAudio.loop = true;
         this.backgroundFrame = { frame: this.repo.getImage("0"), key: "0" };
@@ -104,7 +99,7 @@ abstract class MenuLogic extends Logic {
     }
 
     /**
-   * W.I.P Method that checks what level the player is on
+   * Method that checks if a the player object is standing on a menu item and returns the menu item
    */
     public interactsWithLevel() {
         let returnValue: any[] = [false, null];
@@ -121,7 +116,7 @@ abstract class MenuLogic extends Logic {
     }
 
     /**
-     * 
+     * changes the state of the player sprite every 250ms from 0-1 which creates the idle animation on the menu for the player
      */
     protected changeSprite() {
         if (this.animate(250)) {
@@ -136,7 +131,7 @@ abstract class MenuLogic extends Logic {
     }
 
     /**
-     * 
+     * Changes the background picture every 50ms creating the moving effect
      */
     protected changeBackground() {
         if (this.animate(50)) {

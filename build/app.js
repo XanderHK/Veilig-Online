@@ -134,9 +134,17 @@ Game.IMG_PATH = "./assets/img/";
 Game.AUDIO_PATH = "./assets/audio/";
 Game.AMOUNT_OF_LEVELS = 3;
 class Logic {
-    constructor(repo) {
+    constructor(repo, width, height) {
         this._frames = 0;
         this._repo = repo;
+        this._width = width;
+        this._height = height;
+    }
+    get height() {
+        return this._height;
+    }
+    get width() {
+        return this._width;
     }
     get repo() {
         return this._repo;
@@ -156,12 +164,12 @@ class Logic {
 }
 class Level extends Logic {
     constructor(config, repo, width, height) {
-        super(repo);
+        super(repo, width, height);
         this.currentPlayerImgIndex = { state: 0 };
         this.blocks = [];
         this.spikes = [];
-        this.height = height;
-        this.width = width;
+        this.enemies = [];
+        this.infoObjects = [];
         const entries = Object.entries(config);
         this.initializePlatforms(entries);
         this.initializeSpikes(entries);
@@ -182,7 +190,7 @@ class Level extends Logic {
     }
     initializeSpikes(entries) {
     }
-    playerCollidesWithBlock() {
+    fullCollision() {
         const bools = this.blocks.map(block => {
             const statement = (block.xPos < this.player.xPos + this.repo.getImage("main_char_1").width
                 && block.xPos > this.player.xPos
@@ -238,35 +246,7 @@ class Level extends Logic {
     hitsBottom() {
         return this.player.yPos + this.repo.getImage("main_char_1").height >= this.height;
     }
-    movePlayer() {
-        const collidesWithStandableSide = this.collidesWithTopOfBlock();
-        const collidesWithNoneStandableSide = this.collidesWithLeftRightOrBottom();
-        const fullCollision = this.playerCollidesWithBlock();
-        console.log(fullCollision);
-        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT)) {
-            if (collidesWithNoneStandableSide[0] !== CollisionState.Left) {
-                this.player.move(true);
-                this.changePlayerSprite(8, 13);
-            }
-        }
-        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT)) {
-            if (collidesWithNoneStandableSide[0] !== CollisionState.Right) {
-                this.player.move(false);
-                this.changePlayerSprite(2, 7);
-            }
-        }
-        if (!this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && !(this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT))) {
-            this.changePlayerSprite(0, 1);
-        }
-        if (!collidesWithStandableSide) {
-            if (!this.hitsBottom()) {
-                this.player.gravity();
-            }
-            else {
-                this.player.xPos = this.blocks[0].xPos + this.repo.getImage("main_char_1").width;
-                this.player.yPos = this.blocks[0].yPos - this.repo.getImage("main_char_1").height;
-            }
-        }
+    makePlayerJump() {
         const timeIntervalInFrames = window.fps / 2;
         if (this.lastFrameAfterJump === undefined || this.frames > this.lastFrameAfterJump + timeIntervalInFrames) {
             if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_UP) && this.player.xPos > 0) {
@@ -278,17 +258,56 @@ class Level extends Logic {
             this.player.jump();
         }
     }
+    idlePlayer() {
+        if (!this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT) && !(this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT))) {
+            this.changePlayerSprite(0, 1);
+        }
+    }
+    makePlayerFall(collidesWithStandableSide) {
+        if (!collidesWithStandableSide) {
+            if (!this.hitsBottom()) {
+                this.player.gravity();
+            }
+            else {
+                this.player.xPos = this.blocks[0].xPos + this.repo.getImage("main_char_1").width;
+                this.player.yPos = this.blocks[0].yPos - this.repo.getImage("main_char_1").height;
+            }
+        }
+    }
+    movePlayerLeft(collidesWithNoneStandableSide) {
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_LEFT)) {
+            if (collidesWithNoneStandableSide[0] !== CollisionState.Right) {
+                this.player.move(false);
+                this.changePlayerSprite(2, 7);
+            }
+        }
+    }
+    movePlayerRight(collidesWithNoneStandableSide) {
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT)) {
+            if (collidesWithNoneStandableSide[0] !== CollisionState.Left) {
+                this.player.move(true);
+                this.changePlayerSprite(8, 13);
+            }
+        }
+    }
+    movePlayer() {
+        const collidesWithStandableSide = this.collidesWithTopOfBlock();
+        const collidesWithNoneStandableSide = this.collidesWithLeftRightOrBottom();
+        this.movePlayerRight(collidesWithNoneStandableSide);
+        this.movePlayerLeft(collidesWithNoneStandableSide);
+        this.idlePlayer();
+        this.makePlayerFall(collidesWithStandableSide);
+        this.makePlayerJump();
+    }
 }
 class MenuLogic extends Logic {
     constructor(width, height, repo) {
-        super(repo);
+        super(repo, width, height);
         this.canJump = { right: true, left: true };
         this.currentPlayerImgIndex = { state: 0 };
         this.menuItems = [];
         this.speakers = [];
         this.audio = true;
-        this.width = width;
-        this.height = height;
         this.backgroundAudio = new Audio(MenuLogic.MENU_MUSIC);
         this.backgroundAudio.loop = true;
         this.backgroundFrame = { frame: this.repo.getImage("0"), key: "0" };
@@ -502,6 +521,14 @@ class Block extends GameEntity {
     }
     draw(ctx) {
         ctx.drawImage(this.img, this.xPos, this.yPos);
+    }
+}
+class Enemy extends GameEntity {
+    draw(ctx) {
+    }
+}
+class InfoObject extends GameEntity {
+    draw(ctx) {
     }
 }
 class Lava extends GameEntity {

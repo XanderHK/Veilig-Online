@@ -4,7 +4,7 @@ class MenuView extends MenuLogic {
     private ctx: CanvasRenderingContext2D;
 
     /**
-     * 
+     * Constructs the view of the menu
      * @param {ImageLoader} repo 
      * @param {CanvasRenderingContext2D} ctx 
      * @param {number} width 
