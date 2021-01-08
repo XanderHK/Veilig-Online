@@ -76,9 +76,10 @@ class Game {
                     { xStart: 1250, xEnd: 1300, yStart: 650, yEnd: 550 },
                     { xStart: 1300, xEnd: 1300, yStart: 650, yEnd: 550 },
                 ],
-                spikes: [{ xStart: 0, xEnd: 1950, yStart: 900, yEnd: 1050 }]
+                spikes: [{ xStart: 0, xEnd: 1950, yStart: 900, yEnd: 1050 }],
+                water: [{ xStart: 0, xEnd: this.canvas.width, yStart: this.canvas.height - this.repo.getImage("water").height, yEnd: 1050 }]
             };
-            this.LevelViews.push(new View(config, this.ctx, this.repo, this.canvas.width, this.canvas.height));
+            this.LevelViews.push(new LevelView(config, this.ctx, this.repo, this.canvas.width, this.canvas.height));
         }
     }
     initializeAssets() {
@@ -89,6 +90,8 @@ class Game {
             "level3.png",
             "tile.png",
             "Background_level1.png",
+            "water.png",
+            "coin.png",
             ...Speaker.SPEAKER_SPRITES
         ].concat(Array(37).fill(null).map((e, i) => `background/${i}.jpg`)).concat(Player.PLAYER_SPRITES.map((sprite) => `player/${sprite}`));
         this.repo = new ImageLoader(this.repoKeys, Game.IMG_PATH);
@@ -123,7 +126,7 @@ class Game {
     }
     playState() {
         const currentLevel = this.LevelViews[this.currentLevelIndex];
-        this.LevelViews[this.currentLevelIndex].frames = this.passedFrames;
+        currentLevel.frames = this.passedFrames;
         currentLevel.drawLevel();
         if (this.keyListener.isKeyDown(KeyboardListener.KEY_ESCAPE)) {
             this.gamestate = GameState.Main;
@@ -166,12 +169,17 @@ class Level extends Logic {
     constructor(config, repo, width, height) {
         super(repo, width, height);
         this.currentPlayerImgIndex = { state: 0 };
+        this._score = 0;
         this.blocks = [];
+        this.water = [];
+        this.coins = [];
         this.spikes = [];
         this.enemies = [];
         this.infoObjects = [];
         const entries = Object.entries(config);
         this.initializePlatforms(entries);
+        this.initializeCoins();
+        this.initializeWater(entries);
         this.initializeSpikes(entries);
         this.keyboardListener = new KeyboardListener();
         const playerSprites = Player.PLAYER_SPRITES.map((key) => this.repo.getImage(key));
@@ -188,17 +196,44 @@ class Level extends Logic {
             }
         });
     }
+    initializeWater(entires) {
+        const waterSprite = this.repo.getImage("water");
+        Object.values(entires.find(entry => entry[0] === "water")[1]).forEach((settings) => {
+            const amountOfWaterTiles = Math.ceil((settings.xEnd - settings.xStart) / waterSprite.width);
+            for (let i = 0; i < amountOfWaterTiles; i++) {
+                this.water.push(new Water(settings.xStart, settings.yStart, waterSprite));
+                settings.xStart += waterSprite.width;
+            }
+        });
+    }
+    initializeCoins() {
+        const coinSprite = this.repo.getImage("coin");
+        this.blocks.forEach((possibleSpawnBlock) => {
+            if (Math.round(Math.random()) === 1) {
+                this.coins.push(new Coin(possibleSpawnBlock.xPos, possibleSpawnBlock.yPos - coinSprite.height, coinSprite));
+            }
+        });
+    }
     initializeSpikes(entries) {
     }
-    fullCollision() {
-        const bools = this.blocks.map(block => {
-            const statement = (block.xPos < this.player.xPos + this.repo.getImage("main_char_1").width
-                && block.xPos > this.player.xPos
-                && block.yPos < this.player.yPos + this.repo.getImage("main_char_1").height
-                && block.yPos + this.repo.getImage("tile").height > this.player.yPos);
-            return statement;
+    fullCollision(entities) {
+        const bools = entities.map((entity, i) => {
+            const statement = (entity.xPos < this.player.xPos + this.repo.getImage("main_char_1").width
+                && entity.xPos > this.player.xPos
+                && entity.yPos < this.player.yPos + this.repo.getImage("main_char_1").height
+                && entity.yPos + this.repo.getImage("tile").height > this.player.yPos);
+            return [statement, i];
         });
-        return bools.find(bool => bool === true) === undefined ? false : true;
+        const result = bools.find(bool => bool[0] === true);
+        return result === undefined ? [false, null] : result;
+    }
+    collidesWithCoin() {
+        const coinCollisionResult = this.fullCollision(this.coins);
+        if (coinCollisionResult[0]) {
+            const coinIndex = coinCollisionResult[1];
+            this._score += this.coins[coinIndex].score;
+            this.coins.splice(coinIndex, 1);
+        }
     }
     collidesWithTopOfBlock() {
         return this.blocks.map(block => {
@@ -290,14 +325,60 @@ class Level extends Logic {
             }
         }
     }
+    get score() {
+        return this._score;
+    }
     movePlayer() {
         const collidesWithStandableSide = this.collidesWithTopOfBlock();
         const collidesWithNoneStandableSide = this.collidesWithLeftRightOrBottom();
+        this.collidesWithCoin();
         this.movePlayerRight(collidesWithNoneStandableSide);
         this.movePlayerLeft(collidesWithNoneStandableSide);
-        this.idlePlayer();
         this.makePlayerFall(collidesWithStandableSide);
+        this.idlePlayer();
         this.makePlayerJump();
+    }
+}
+class LevelView extends Level {
+    constructor(config, ctx, repo, width, height) {
+        super(config, repo, width, height);
+        this.ctx = ctx;
+        this.scoreText = new TextString(this.width - this.ctx.measureText("0000").width, 100, String(0));
+    }
+    drawLevel() {
+        this.drawBackGround();
+        this.drawBlocks();
+        this.drawCoins();
+        this.movePlayer();
+        this.drawPlayer();
+        this.drawWater();
+        this.drawScore();
+    }
+    drawBackGround() {
+        const background = this.repo.getImage("Background_level1");
+        this.ctx.drawImage(background, (this.width / 2) - (background.width / 2), (this.height / 2) - (background.height / 2), background.width, background.height);
+    }
+    drawScore() {
+        this.scoreText.fillStyle = "white";
+        this.scoreText.text = String(this.score);
+        this.scoreText.drawText(this.ctx);
+    }
+    drawCoins() {
+        this.drawEntities(this.coins);
+    }
+    drawWater() {
+        this.drawEntities(this.water);
+    }
+    drawBlocks() {
+        this.drawEntities(this.blocks);
+    }
+    drawEntities(entities) {
+        entities.forEach((entity) => {
+            entity.draw(this.ctx);
+        });
+    }
+    drawPlayer() {
+        this.player.draw(this.ctx, this.playerImageIndex);
     }
 }
 class MenuLogic extends Logic {
@@ -455,30 +536,6 @@ class MenuView extends MenuLogic {
         this.drawInstructions();
     }
 }
-class View extends Level {
-    constructor(config, ctx, repo, width, height) {
-        super(config, repo, width, height);
-        this.ctx = ctx;
-    }
-    drawLevel() {
-        this.drawBackGround();
-        this.drawBlocks();
-        this.movePlayer();
-        this.drawPlayer();
-    }
-    drawBackGround() {
-        const background = this.repo.getImage("Background_level1");
-        this.ctx.drawImage(background, (this.width / 2) - (background.width / 2), (this.height / 2) - (background.height / 2), background.width, background.height);
-    }
-    drawBlocks() {
-        this.blocks.forEach((block) => {
-            block.draw(this.ctx);
-        });
-    }
-    drawPlayer() {
-        this.player.draw(this.ctx, this.playerImageIndex);
-    }
-}
 class GameEntity {
     constructor(x, y, velocityX = 0, velocityY = 0) {
         this._xPos = x;
@@ -523,20 +580,29 @@ class Block extends GameEntity {
         ctx.drawImage(this.img, this.xPos, this.yPos);
     }
 }
+class Coin extends GameEntity {
+    constructor(x, y, sprite) {
+        super(x, y, 0, 0);
+        this.img = sprite;
+        this._score = Coin.SCORE;
+    }
+    get sprite() {
+        return this.img;
+    }
+    get score() {
+        return this._score;
+    }
+    draw(ctx) {
+        ctx.drawImage(this.img, this.xPos, this.yPos);
+    }
+}
+Coin.SCORE = 10;
 class Enemy extends GameEntity {
     draw(ctx) {
     }
 }
 class InfoObject extends GameEntity {
     draw(ctx) {
-    }
-}
-class Lava extends GameEntity {
-    constructor(x, y) {
-        super(x, y, 0);
-    }
-    draw(ctx) {
-        ctx.drawImage;
     }
 }
 class MenuItem extends GameEntity {
@@ -590,6 +656,19 @@ class Spike extends GameEntity {
         ctx.drawImage;
     }
 }
+class Water extends GameEntity {
+    constructor(x, y, sprite) {
+        super(x, y, 0, 0);
+        this.img = sprite;
+    }
+    get sprite() {
+        return this.img;
+    }
+    draw(ctx) {
+        ctx.drawImage(this.img, this.xPos, this.yPos);
+    }
+}
+Water.SPRITE = [""];
 class ClickHandler {
     static click(instance, method, measurements) {
         window.addEventListener("click", (event) => {

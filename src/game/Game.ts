@@ -19,7 +19,7 @@ class Game {
     private repoKeys: string[];
     private keyListener: KeyboardListener;
 
-    private LevelViews: View[] = [];
+    private LevelViews: LevelView[] = [];
 
     private menuView: MenuView;
 
@@ -82,9 +82,10 @@ class Game {
                     { xStart: 1300, xEnd: 1300, yStart: 650, yEnd: 550 },
 
                 ],
-                spikes: [{ xStart: 0, xEnd: 1950, yStart: 900, yEnd: 1050 }]
+                spikes: [{ xStart: 0, xEnd: 1950, yStart: 900, yEnd: 1050 }],
+                water: [{ xStart: 0, xEnd: this.canvas.width, yStart: this.canvas.height - this.repo.getImage("water").height, yEnd: 1050 }]
             }
-            this.LevelViews.push(new View(config, this.ctx, this.repo, this.canvas.width, this.canvas.height))
+            this.LevelViews.push(new LevelView(config, this.ctx, this.repo, this.canvas.width, this.canvas.height))
         }
     }
 
@@ -99,6 +100,8 @@ class Game {
             "level3.png",
             "tile.png",
             "Background_level1.png",
+            "water.png",
+            "coin.png",
             ...Speaker.SPEAKER_SPRITES
         ].concat(Array(37).fill(null).map((e, i) => `background/${i}.jpg`)).concat(Player.PLAYER_SPRITES.map((sprite) => `player/${sprite}`));
         this.repo = new ImageLoader(this.repoKeys, Game.IMG_PATH);
@@ -154,7 +157,7 @@ class Game {
     */
     private playState() {
         const currentLevel = this.LevelViews[this.currentLevelIndex];
-        this.LevelViews[this.currentLevelIndex].frames = this.passedFrames;
+        currentLevel.frames = this.passedFrames;
         currentLevel.drawLevel();
         if (this.keyListener.isKeyDown(KeyboardListener.KEY_ESCAPE)) {
             this.gamestate = GameState.Main;

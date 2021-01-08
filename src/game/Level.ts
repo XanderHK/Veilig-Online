@@ -4,10 +4,13 @@ abstract class Level extends Logic {
     private keyboardListener: KeyboardListener;
     private lastFrameAfterJump: number;
     private currentPlayerImgIndex: { state: number } = { state: 0 };
+    private _score: number = 0;
 
     protected name: string;
 
     protected blocks: Block[] = []
+    protected water: Water[] = [];
+    protected coins: Coin[] = [];
     protected spikes: Spike[] = [];
     protected enemies: Enemy[] = [];
     protected infoObjects: InfoObject[] = [];
@@ -25,6 +28,8 @@ abstract class Level extends Logic {
         super(repo, width, height);
         const entries: [string, any][] = Object.entries(config);
         this.initializePlatforms(entries);
+        this.initializeCoins();
+        this.initializeWater(entries);
         this.initializeSpikes(entries);
         this.keyboardListener = new KeyboardListener();
 
@@ -49,6 +54,26 @@ abstract class Level extends Logic {
         });
     }
 
+    private initializeWater(entires: [string, any][]) {
+        const waterSprite = this.repo.getImage("water");
+        Object.values(entires.find(entry => entry[0] === "water")[1]).forEach((settings: { xStart: number; xEnd: number; yStart: number; yEnd: number; }) => {
+            const amountOfWaterTiles = Math.ceil((settings.xEnd - settings.xStart) / waterSprite.width);
+            for (let i = 0; i < amountOfWaterTiles; i++) {
+                this.water.push(new Water(settings.xStart, settings.yStart, waterSprite));
+                settings.xStart += waterSprite.width;
+            }
+        })
+    }
+
+    private initializeCoins() {
+        const coinSprite = this.repo.getImage("coin");
+        this.blocks.forEach((possibleSpawnBlock: Block) => {
+            if (Math.round(Math.random()) === 1) {
+                this.coins.push(new Coin(possibleSpawnBlock.xPos, possibleSpawnBlock.yPos - coinSprite.height, coinSprite))
+            }
+        })
+    }
+
     /**
      * 
      * @param entries 
@@ -60,17 +85,28 @@ abstract class Level extends Logic {
     /**
      * Collision method that checks if something collides with something else (e.g. player and coins)
      */
-    private fullCollision() {
+    private fullCollision(entities: GameEntity[]) {
         // Collision detection of objects and player
         // Use the bounding box detection method: https://computersciencewiki.org/index.php/Bounding_boxes
-        const bools = this.blocks.map(block => {
-            const statement: boolean = (block.xPos < this.player.xPos + this.repo.getImage("main_char_1").width
-                && block.xPos > this.player.xPos
-                && block.yPos < this.player.yPos + this.repo.getImage("main_char_1").height
-                && block.yPos + this.repo.getImage("tile").height > this.player.yPos);
-            return statement
+        const bools: [boolean, number][] = entities.map((entity: GameEntity, i: number) => {
+            const statement: boolean = (entity.xPos < this.player.xPos + this.repo.getImage("main_char_1").width
+                && entity.xPos > this.player.xPos
+                && entity.yPos < this.player.yPos + this.repo.getImage("main_char_1").height
+                && entity.yPos + this.repo.getImage("tile").height > this.player.yPos);
+            return [statement, i]
         })
-        return bools.find(bool => bool === true) === undefined ? false : true
+        const result = bools.find(bool => bool[0] === true);
+        return result === undefined ? [false, null] : result
+    }
+
+    private collidesWithCoin() {
+        const coinCollisionResult = this.fullCollision(this.coins);
+        if (coinCollisionResult[0]) {
+            const coinIndex: number = coinCollisionResult[1] as number
+            this._score += this.coins[coinIndex].score;
+            this.coins.splice(coinIndex, 1);
+
+        }
     }
 
     /**
@@ -213,16 +249,22 @@ abstract class Level extends Logic {
         }
     }
 
+
+    public get score(): number {
+        return this._score;
+    }
+
     /**
      * Bundle method that invokes every player movement related method
      */
     protected movePlayer() {
         const collidesWithStandableSide: boolean = this.collidesWithTopOfBlock();
         const collidesWithNoneStandableSide = this.collidesWithLeftRightOrBottom();
+        this.collidesWithCoin();
         this.movePlayerRight(collidesWithNoneStandableSide);
         this.movePlayerLeft(collidesWithNoneStandableSide);
-        this.idlePlayer();
         this.makePlayerFall(collidesWithStandableSide);
+        this.idlePlayer();
         this.makePlayerJump();
     }
 }
