@@ -15,6 +15,7 @@ abstract class MenuLogic extends Logic {
     protected speakers: Speaker[] = [];
 
     protected audio: boolean = true;
+    protected _totalScore: number = 0;
 
 
     /**
@@ -35,6 +36,10 @@ abstract class MenuLogic extends Logic {
         this.player = new Player(this.width / 3, 0, 0, 0, playerSprites);
     }
 
+
+    public set totalScore(score: number) {
+        this._totalScore = score;
+    }
 
 
     /**

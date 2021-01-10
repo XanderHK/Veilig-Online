@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 window.addEventListener('load', () => {
     const game = new Game(document.getElementById('canvas'));
 });
@@ -39,48 +48,17 @@ class Game {
         this.initializeAssets();
         this.step();
     }
+    isLoading() {
+        return this.LevelViews.length !== Game.AMOUNT_OF_LEVELS;
+    }
     initializeLevels() {
-        for (let i = 0; i < Game.AMOUNT_OF_LEVELS; i++) {
-            const config = {
-                name: `level ${i + 1}`,
-                platforms: [
-                    { xStart: 0, xEnd: 200, yStart: 700, yEnd: 750 },
-                    { xStart: 300, xEnd: 400, yStart: 650, yEnd: 700 },
-                    { xStart: 500, xEnd: 550, yStart: 600, yEnd: 650 },
-                    { xStart: 650, xEnd: 700, yStart: 550, yEnd: 600 },
-                    { xStart: 800, xEnd: 850, yStart: 500, yEnd: 550 },
-                    { xStart: 900, xEnd: 950, yStart: 450, yEnd: 550 },
-                    { xStart: 950, xEnd: 1000, yStart: 450, yEnd: 550 },
-                    { xStart: 950, xEnd: 1000, yStart: 400, yEnd: 550 },
-                    { xStart: 950, xEnd: 1000, yStart: 350, yEnd: 550 },
-                    { xStart: 950, xEnd: 1000, yStart: 300, yEnd: 550 },
-                    { xStart: 850, xEnd: 900, yStart: 250, yEnd: 550 },
-                    { xStart: 800, xEnd: 850, yStart: 250, yEnd: 550 },
-                    { xStart: 650, xEnd: 700, yStart: 250, yEnd: 550 },
-                    { xStart: 600, xEnd: 650, yStart: 250, yEnd: 550 },
-                    { xStart: 600, xEnd: 650, yStart: 200, yEnd: 550 },
-                    { xStart: 550, xEnd: 600, yStart: 250, yEnd: 550 },
-                    { xStart: 400, xEnd: 450, yStart: 200, yEnd: 550 },
-                    { xStart: 200, xEnd: 250, yStart: 150, yEnd: 550 },
-                    { xStart: 150, xEnd: 200, yStart: 150, yEnd: 550 },
-                    { xStart: 100, xEnd: 150, yStart: 150, yEnd: 550 },
-                    { xStart: 50, xEnd: 100, yStart: 150, yEnd: 550 },
-                    { xStart: 1100, xEnd: 1150, yStart: 250, yEnd: 550 },
-                    { xStart: 1150, xEnd: 1200, yStart: 250, yEnd: 550 },
-                    { xStart: 1250, xEnd: 1300, yStart: 350, yEnd: 550 },
-                    { xStart: 1150, xEnd: 1200, yStart: 400, yEnd: 550 },
-                    { xStart: 1250, xEnd: 1300, yStart: 450, yEnd: 550 },
-                    { xStart: 1150, xEnd: 1200, yStart: 500, yEnd: 550 },
-                    { xStart: 1250, xEnd: 1300, yStart: 550, yEnd: 550 },
-                    { xStart: 1150, xEnd: 1200, yStart: 600, yEnd: 550 },
-                    { xStart: 1250, xEnd: 1300, yStart: 650, yEnd: 550 },
-                    { xStart: 1300, xEnd: 1300, yStart: 650, yEnd: 550 },
-                ],
-                spikes: [{ xStart: 0, xEnd: 1950, yStart: 900, yEnd: 1050 }],
-                water: [{ xStart: 0, xEnd: this.canvas.width, yStart: this.canvas.height - this.repo.getImage("water").height, yEnd: 1050 }]
-            };
-            this.LevelViews.push(new LevelView(config, this.ctx, this.repo, this.canvas.width, this.canvas.height));
-        }
+        [1, 2, 3].forEach((n) => __awaiter(this, void 0, void 0, function* () {
+            const promise = yield fetch(`./assets/json/level${n}.json`);
+            const response = yield promise.json();
+            response["water"] = [{ xStart: 0, xEnd: this.canvas.width, yStart: this.canvas.height - this.repo.getImage("water").height, yEnd: 1050 }];
+            console.log(response);
+            this.LevelViews.push(new LevelView(response, this.ctx, this.repo, this.canvas.width, this.canvas.height));
+        }));
     }
     initializeAssets() {
         this.repoKeys = [
@@ -102,12 +80,23 @@ class Game {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
     }
+    getAllScore() {
+        this.menuView.totalScore = this.LevelViews.reduce((a, b) => {
+            a += b.score;
+            return a;
+        }, 0);
+    }
     loader() {
         if (!this.repo.isLoading() && this.fps !== 0) {
             if (this.menuView === undefined) {
-                this.gamestate = GameState.Main;
                 this.menuView = new MenuView(this.repo, this.ctx, this.canvas.width, this.canvas.height);
                 this.initializeLevels();
+            }
+            if (this.menuView instanceof MenuView) {
+                if (!this.isLoading()) {
+                    this.LevelViews.sort((a, b) => Number(a.name.replace(/^\D+/g, '')) - Number(b.name.replace(/^\D+/g, '')));
+                    this.gamestate = GameState.Main;
+                }
             }
         }
         else {
@@ -115,6 +104,7 @@ class Game {
         }
     }
     mainState() {
+        this.getAllScore();
         this.menuView.frames = this.passedFrames;
         this.repoKeys = this.repoKeys.map((path) => path.split("/").pop().split(".").shift());
         this.menuView.drawMenu();
@@ -185,9 +175,12 @@ class Level extends Logic {
         const playerSprites = Player.PLAYER_SPRITES.map((key) => this.repo.getImage(key));
         this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 8, 10, playerSprites);
     }
+    get name() {
+        return this._name;
+    }
     initializePlatforms(entries) {
         const tileSprite = this.repo.getImage("tile");
-        this.name = String(entries.find((entry) => entry[0] === "name")[1]);
+        this._name = String(entries.find((entry) => entry[0] === "name")[1]);
         Object.values(entries.find(entry => entry[0] === "platforms")[1]).forEach((settings, i) => {
             const amountOfTiles = Math.floor((settings.xEnd - settings.xStart) / tileSprite.width);
             for (let i = 0; i < amountOfTiles; i++) {
@@ -389,6 +382,7 @@ class MenuLogic extends Logic {
         this.menuItems = [];
         this.speakers = [];
         this.audio = true;
+        this._totalScore = 0;
         this.backgroundAudio = new Audio(MenuLogic.MENU_MUSIC);
         this.backgroundAudio.loop = true;
         this.backgroundFrame = { frame: this.repo.getImage("0"), key: "0" };
@@ -396,6 +390,9 @@ class MenuLogic extends Logic {
         this.keyboardListener = new KeyboardListener();
         const playerSprites = Player.PLAYER_SPRITES.map((key) => this.repo.getImage(key));
         this.player = new Player(this.width / 3, 0, 0, 0, playerSprites);
+    }
+    set totalScore(score) {
+        this._totalScore = score;
     }
     initializeImages() {
         this.speakers = [...Speaker.SPEAKER_SPRITES].map((key) => {
@@ -495,6 +492,12 @@ class MenuView extends MenuLogic {
     constructor(repo, ctx, width, height) {
         super(width, height, repo);
         this.ctx = ctx;
+        this.totalScoreText = new TextString(this.width - this.ctx.measureText("0000").width, 100, String(0));
+    }
+    drawTotalScore() {
+        this.totalScoreText.fillStyle = "white";
+        this.totalScoreText.text = String(this._totalScore);
+        this.totalScoreText.drawText(this.ctx);
     }
     drawInstructions() {
         const instructionText = "PRESS ENTER TO START LEVEL";
@@ -534,6 +537,7 @@ class MenuView extends MenuLogic {
         this.movePlayer();
         this.drawPlayer();
         this.drawInstructions();
+        this.drawTotalScore();
     }
 }
 class GameEntity {

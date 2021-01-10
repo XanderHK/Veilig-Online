@@ -2,6 +2,7 @@
 class MenuView extends MenuLogic {
 
     private ctx: CanvasRenderingContext2D;
+    private totalScoreText: TextString;
 
     /**
      * Constructs the view of the menu
@@ -19,6 +20,13 @@ class MenuView extends MenuLogic {
     ) {
         super(width, height, repo);
         this.ctx = ctx;
+        this.totalScoreText = new TextString(this.width - this.ctx.measureText("0000").width, 100, String(0));
+    }
+
+    private drawTotalScore() {
+        this.totalScoreText.fillStyle = "white";
+        this.totalScoreText.text = String(this._totalScore);
+        this.totalScoreText.drawText(this.ctx);
     }
 
     /**
@@ -81,5 +89,6 @@ class MenuView extends MenuLogic {
         this.movePlayer();
         this.drawPlayer();
         this.drawInstructions();
+        this.drawTotalScore();
     }
 }

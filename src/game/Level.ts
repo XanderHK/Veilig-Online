@@ -6,7 +6,7 @@ abstract class Level extends Logic {
     private currentPlayerImgIndex: { state: number } = { state: 0 };
     private _score: number = 0;
 
-    protected name: string;
+    protected _name: string;
 
     protected blocks: Block[] = []
     protected water: Water[] = [];
@@ -38,13 +38,17 @@ abstract class Level extends Logic {
 
     }
 
+    public get name(): string {
+        return this._name;
+    }
+
     /**
      * Method that creates all the blocks
      * @param {[string, any][]} entries 
      */
     private initializePlatforms(entries: [string, any][]) {
         const tileSprite = this.repo.getImage("tile");
-        this.name = String(entries.find((entry) => entry[0] === "name")[1]);
+        this._name = String(entries.find((entry) => entry[0] === "name")[1]);
         Object.values(entries.find(entry => entry[0] === "platforms")[1]).forEach((settings: { xStart: number; xEnd: number; yStart: number; yEnd: number; }, i: number) => {
             const amountOfTiles = Math.floor((settings.xEnd - settings.xStart) / tileSprite.width);
             for (let i = 0; i < amountOfTiles; i++) {
