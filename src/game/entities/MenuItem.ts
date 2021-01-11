@@ -7,6 +7,10 @@ class MenuItem extends GameEntity {
         this.image = img;
     }
 
+    public get sprite(): HTMLImageElement {
+        return this.image;
+    }
+
     /**
      * 
      * @param ctx 

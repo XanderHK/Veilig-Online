@@ -8,6 +8,8 @@ class Game {
     public static readonly AUDIO_PATH = "./assets/audio/";
     public static readonly AMOUNT_OF_LEVELS = 3;
     public static readonly AMOUNT_OF_INFO = 2;
+    public static readonly AMOUNT_OF_LIVES = 3;
+    public static readonly AMOUNT_OF_ENEMIES = 2;
 
     // The canvas
     private canvas: HTMLCanvasElement;
@@ -24,6 +26,9 @@ class Game {
 
     private menuView: MenuView;
 
+    private lostText: TextString;
+    private loadText: TextString;
+
     private fps: number = 0;
     private passedFrames: number = 0;
     private ticks: number = 0;
@@ -38,6 +43,8 @@ class Game {
         this.keyListener = new KeyboardListener();
         this.initializeCanvas(canvas);
         this.initializeAssets();
+        this.loadText = new TextString(this.canvas.width / 2, this.canvas.height / 2, "Loading...");
+        this.lostText = new TextString(this.canvas.width / 2, this.canvas.height / 2, "Jij hebt verloren, druk op R om te herstarten.");
         // Initial call to the loop
         this.step();
     }
@@ -71,6 +78,7 @@ class Game {
             "water.png",
             "coin.png",
             "info.png",
+            "enemy.png",
             ...Speaker.SPEAKER_SPRITES
         ].concat(Array(37).fill(null).map((e, i) => `background/${i}.jpg`)).concat(Player.PLAYER_SPRITES.map((sprite) => `player/${sprite}`));
         this.repo = new ImageLoader(this.repoKeys, Game.IMG_PATH);
@@ -113,7 +121,7 @@ class Game {
                 }
             }
         } else {
-            this.ctx.fillText("Loading...", this.canvas.width / 2, this.canvas.height / 2);
+            this.loadText.drawText(this.ctx)
         }
     }
 
@@ -140,10 +148,23 @@ class Game {
     */
     private playState() {
         const currentLevel = this.LevelViews[this.currentLevelIndex];
-        currentLevel.frames = this.passedFrames;
-        currentLevel.drawLevel();
-        if (this.keyListener.isKeyDown(KeyboardListener.KEY_ESCAPE)) {
-            this.gamestate = GameState.Main;
+        if (currentLevel.lives !== 0) {
+            currentLevel.frames = this.passedFrames;
+            currentLevel.drawLevel();
+            if (this.keyListener.isKeyDown(KeyboardListener.KEY_ESCAPE)) {
+                this.gamestate = GameState.Main;
+            }
+        } else {
+            this.gamestate = GameState.GameOver
+        }
+    }
+
+    private overState() {
+        this.lostText.drawText(this.ctx)
+        if (this.keyListener.isKeyDown(KeyboardListener.KEY_R)) {
+            this.LevelViews.splice(0, this.LevelViews.length)
+            this.initializeLevels();
+            this.gamestate = GameState.Load
         }
     }
 
@@ -174,6 +195,10 @@ class Game {
 
             case GameState.Play:
                 this.playState();
+                break;
+
+            case GameState.GameOver:
+                this.overState();
                 break;
 
             default:

@@ -1,12 +1,20 @@
 /// <reference path="GameEntity.ts"/>
 class Spike extends GameEntity {
 
-    public constructor(x:number, y:number){
-        super(x,y,0);
+    public static readonly SPRITE = [""];
 
-        
+    private img: HTMLImageElement;
+
+    public constructor(x: number, y: number, sprite: HTMLImageElement) {
+        super(x, y, 0, 0);
+        this.img = sprite;
     }
+
+    public get sprite(): HTMLImageElement {
+        return this.img;
+    }
+
     public draw(ctx: CanvasRenderingContext2D) {
-        ctx.drawImage
+        ctx.drawImage(this.img, this.xPos, this.yPos)
     }
 }

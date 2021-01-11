@@ -1,12 +1,13 @@
 /// <reference path="Logic.ts"/>
-abstract class Level extends Logic {
+abstract class LevelLogic extends Logic {
 
     private keyboardListener: KeyboardListener;
     private lastFrameAfterJump: number;
     private currentPlayerImgIndex: { state: number } = { state: 0 };
     private _score: number = 0;
+    private _lives: number = Game.AMOUNT_OF_LIVES;
+    private _name: string;
 
-    protected _name: string;
 
     protected blocks: Block[] = []
     protected water: Water[] = [];
@@ -15,6 +16,7 @@ abstract class Level extends Logic {
     protected enemies: Enemy[] = [];
     protected infoObjects: InfoObject[] = [];
     protected player: Player;
+    protected window: boolean = false;
 
 
     /**
@@ -32,6 +34,7 @@ abstract class Level extends Logic {
         this.initializeWater(entries);
         this.initializeSpikes(entries);
         this.initializeInfo(entries);
+        this.initializeEnemies(entries);
         this.keyboardListener = new KeyboardListener();
 
         const playerSprites: HTMLImageElement[] = Player.PLAYER_SPRITES.map((key: string) => this.repo.getImage(key))
@@ -76,8 +79,9 @@ abstract class Level extends Logic {
     private initializeCoins() {
         const coinSprite = this.repo.getImage("coin");
         this.blocks.forEach((possibleSpawnBlock: Block) => {
-            if (Math.round(Math.random()) === 1) {
-                this.coins.push(new Coin(possibleSpawnBlock.xPos, possibleSpawnBlock.yPos - coinSprite.height, coinSprite))
+            const coin = new Coin(possibleSpawnBlock.xPos, possibleSpawnBlock.yPos - coinSprite.height - 5, coinSprite)
+            if (Math.round(Math.random()) === 1 && this.fullCollision(this.blocks, coin)[0] === false) {
+                this.coins.push(coin);
             }
         })
     }
@@ -95,9 +99,14 @@ abstract class Level extends Logic {
  * @param {[string, any][]} entries
  */
     private initializeEnemies(entries: [string, any][]) {
-
+        const enemySprite: HTMLImageElement = this.repo.getImage("enemy");
+        const info: { answer: string, question: string }[] = entries.find(entry => entry[0] === "questions")[1]
+        for (let i = 0; i < Game.AMOUNT_OF_ENEMIES; i++) {
+            const randomIndex: number = Math.floor(Math.random() * this.blocks.length);
+            const randomSpawn: Block = this.blocks[randomIndex];
+            this.enemies.push(new Enemy(randomSpawn.xPos, randomSpawn.yPos - enemySprite.height, enemySprite, info[i].question, info[i].answer));
+        }
     }
-
 
 
     /**
@@ -105,14 +114,25 @@ abstract class Level extends Logic {
  * * @param {[string, any][]} entries
  */
     private initializeInfo(entries: [string, any][]) {
-        const infoSprite = this.repo.getImage("info");
-        console.log(entries);
-        const info = entries.find(entry => entry[0] === "questions")
-        console.log(info)
+        const infoSprite: HTMLImageElement = this.repo.getImage("info");
+        const info: { answer: string, question: string }[] = entries.find(entry => entry[0] === "questions")[1]
+        const tempInfoArr: InfoObject[] = [];
         for (let i = 0; i < Game.AMOUNT_OF_INFO; i++) {
             const randomIndex: number = Math.floor(Math.random() * this.blocks.length);
             const randomSpawn: Block = this.blocks[randomIndex];
-            //this.infoObjects.push(new InfoObject(randomSpawn.xPos, randomSpawn.yPos - randomSpawn.sprite.height, infoSprite));
+            const newInfoObj: InfoObject = new InfoObject(randomSpawn.xPos, randomSpawn.yPos - randomSpawn.sprite.height, infoSprite, info[i].question, info[i].answer);
+            tempInfoArr.push(newInfoObj);
+        }
+        const retry: boolean = tempInfoArr.map(temp => {
+            if (this.fullCollision(this.blocks, temp)[0]) {
+                return true;
+            }
+            return false;
+        }).find(e => e === true)
+        if (retry) {
+            this.initializeInfo(entries)
+        } else {
+            tempInfoArr.forEach(infoObj => this.infoObjects.push(infoObj))
         }
     }
 
@@ -120,14 +140,14 @@ abstract class Level extends Logic {
     /**
      * Collision method that checks if something collides with something else (e.g. player and coins)
      */
-    private fullCollision(entities: GameEntity[]) {
+    private fullCollision(entities: GameEntity[], compareEntity: GameEntity) {
         // Collision detection of objects and player
         // Use the bounding box detection method: https://computersciencewiki.org/index.php/Bounding_boxes
         const bools: [boolean, number][] = entities.map((entity: GameEntity, i: number) => {
-            const statement: boolean = (entity.xPos < this.player.xPos + this.repo.getImage("main_char_1").width
-                && entity.xPos > this.player.xPos
-                && entity.yPos < this.player.yPos + this.repo.getImage("main_char_1").height
-                && entity.yPos + this.repo.getImage("tile").height > this.player.yPos);
+            const statement: boolean = (entity.xPos <= compareEntity.xPos + compareEntity.sprite.width
+                && entity.xPos + entity.sprite.width >= compareEntity.xPos
+                && entity.yPos <= compareEntity.yPos + compareEntity.sprite.height
+                && entity.yPos + entity.sprite.height >= compareEntity.yPos);
             return [statement, i]
         })
         const result = bools.find(bool => bool[0] === true);
@@ -135,7 +155,7 @@ abstract class Level extends Logic {
     }
 
     private collidesWithCoin() {
-        const coinCollisionResult = this.fullCollision(this.coins);
+        const coinCollisionResult = this.fullCollision(this.coins, this.player);
         if (coinCollisionResult[0]) {
             const coinIndex: number = coinCollisionResult[1] as number
             this._score += this.coins[coinIndex].score;
@@ -251,6 +271,7 @@ abstract class Level extends Logic {
             if (!this.hitsBottom()) {
                 this.player.gravity();
             } else {
+                this._lives--;
                 this.player.xPos = this.blocks[0].xPos + this.repo.getImage("main_char_1").width;
                 this.player.yPos = this.blocks[0].yPos - this.repo.getImage("main_char_1").height;
             }
@@ -289,9 +310,36 @@ abstract class Level extends Logic {
         return this._score;
     }
 
-    protected collidesWithInfo() {
-        return this.fullCollision(this.infoObjects);
+    public get lives(): number {
+        return this._lives;
     }
+
+    protected interactsWithInfo() {
+        const result = this.fullCollision(this.infoObjects, this.player);
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_ENTER) && result[0]) {
+            this.window = true;
+            return result
+        } else if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_Q) && this.fullCollision(this.infoObjects, this.player)) {
+            this.window = false;
+            return result
+        } else {
+            return result
+        }
+    }
+
+    protected interactWithEnemey() {
+        const result = this.fullCollision(this.enemies, this.player);
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_ENTER) && result[0]) {
+            this.window = true;
+            return result
+        } else if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_Q) && this.fullCollision(this.infoObjects, this.player)) {
+            this.window = false;
+            return result
+        } else {
+            return result
+        }
+    }
+
 
     /**
      * Bundle method that invokes every player movement related method

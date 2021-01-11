@@ -1,6 +1,6 @@
 {
                     "name": "level1",
-                "platforms": [
+                    "platforms": [
                     { "xStart": 0, "xEnd": 200, "yStart": 700, "yEnd": 750 },
                     { "xStart": 300, "xEnd": 400, "yStart": 650, "yEnd": 700 },
                     { "xStart": 500, "xEnd": 550, "yStart": 600, "yEnd": 650 },
@@ -31,9 +31,23 @@
                     { "xStart": 1250, "xEnd": 1300, "yStart": 550, "yEnd": 550 },
                     { "xStart": 1150, "xEnd": 1200, "yStart": 600, "yEnd": 550 },
                     { "xStart": 1250, "xEnd": 1300, "yStart": 650, "yEnd": 550 },
-                    { "xStart": 1300, "xEnd": 1300, "yStart": 650, "yEnd": 550 }
+                    { "xStart": 1300, "xEnd": 1300, "yStart": 650, "yEnd": 550 },
+                    { "xStart": 1350, "xEnd": 1400, "yStart": 700, "yEnd": 550 },
+                    { "xStart": 1400, "xEnd": 1450, "yStart": 700, "yEnd": 550 },
+                    { "xStart": 1400, "xEnd": 1450, "yStart": 650, "yEnd": 550 },
+                    { "xStart": 1450, "xEnd": 1500, "yStart": 700, "yEnd": 550 },
+                    { "xStart": 1650, "xEnd": 1700, "yStart": 650, "yEnd": 550 },
+                    { "xStart": 1750, "xEnd": 1800, "yStart": 700, "yEnd": 550 },
+                    { "xStart": 1400, "xEnd": 1450, "yStart": 300, "yEnd": 550 },
+                    { "xStart": 1450, "xEnd": 1500, "yStart": 300, "yEnd": 550 },
+                    { "xStart": 1600, "xEnd": 1650, "yStart": 250, "yEnd": 550 },
+                    { "xStart": 1700, "xEnd": 1750, "yStart": 200, "yEnd": 550 },
+                    { "xStart": 1700, "xEnd": 1750, "yStart": 150, "yEnd": 550 },
+                    { "xStart": 1750, "xEnd": 1800, "yStart": 200, "yEnd": 550 },
+                    { "xStart": 1800, "xEnd": 1850, "yStart": 200, "yEnd": 550 },
+                    { "xStart": 1850, "xEnd": 1900, "yStart": 200, "yEnd": 550 }
                 ],
                 "spikes": [{ "xStart": 0, "xEnd": 1950, "yStart": 900, "yEnd": 1050 }],
-                "questions" : [{"answer" : "blub", "questions" : "bloop"}, {"answer" : "bloop", "question" : "blub"}],
+                "questions" : [{"answer" : "NEE", "question" : "Je wordt op social media toegevoegd door een onbekend iemand. Voeg je diegene toe?"  }, {"answer" : "bloop", "question" : "blub"}],
                 "info" : [{"xStart" : 50, "yStart" : 750}]
 }

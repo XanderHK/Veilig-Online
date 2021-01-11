@@ -1,10 +1,14 @@
 class Enemy extends GameEntity {
 
     private img: HTMLImageElement;
+    private _question: string;
+    private _answer: string;
 
-    public constructor(x: number, y: number, sprite: HTMLImageElement) {
+    public constructor(x: number, y: number, sprite: HTMLImageElement, question: string, answer: string) {
         super(x, y, 0, 0);
         this.img = sprite;
+        this._question = question;
+        this._answer = answer;
     }
 
     public get sprite(): HTMLImageElement {

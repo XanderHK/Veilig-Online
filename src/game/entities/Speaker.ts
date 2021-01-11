@@ -10,6 +10,10 @@ class Speaker extends GameEntity {
         this.image = img;
     }
 
+    public get sprite() {
+        return this.image;
+    }
+
     /**
      * 
      * @param ctx 

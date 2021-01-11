@@ -37,6 +37,9 @@ class Game {
                 case GameState.Play:
                     this.playState();
                     break;
+                case GameState.GameOver:
+                    this.overState();
+                    break;
                 default:
                     this.loader();
             }
@@ -46,6 +49,8 @@ class Game {
         this.keyListener = new KeyboardListener();
         this.initializeCanvas(canvas);
         this.initializeAssets();
+        this.loadText = new TextString(this.canvas.width / 2, this.canvas.height / 2, "Loading...");
+        this.lostText = new TextString(this.canvas.width / 2, this.canvas.height / 2, "Jij hebt verloren, druk op R om te herstarten.");
         this.step();
     }
     isLoading() {
@@ -70,6 +75,7 @@ class Game {
             "water.png",
             "coin.png",
             "info.png",
+            "enemy.png",
             ...Speaker.SPEAKER_SPRITES
         ].concat(Array(37).fill(null).map((e, i) => `background/${i}.jpg`)).concat(Player.PLAYER_SPRITES.map((sprite) => `player/${sprite}`));
         this.repo = new ImageLoader(this.repoKeys, Game.IMG_PATH);
@@ -100,7 +106,7 @@ class Game {
             }
         }
         else {
-            this.ctx.fillText("Loading...", this.canvas.width / 2, this.canvas.height / 2);
+            this.loadText.drawText(this.ctx);
         }
     }
     mainState() {
@@ -116,10 +122,23 @@ class Game {
     }
     playState() {
         const currentLevel = this.LevelViews[this.currentLevelIndex];
-        currentLevel.frames = this.passedFrames;
-        currentLevel.drawLevel();
-        if (this.keyListener.isKeyDown(KeyboardListener.KEY_ESCAPE)) {
-            this.gamestate = GameState.Main;
+        if (currentLevel.lives !== 0) {
+            currentLevel.frames = this.passedFrames;
+            currentLevel.drawLevel();
+            if (this.keyListener.isKeyDown(KeyboardListener.KEY_ESCAPE)) {
+                this.gamestate = GameState.Main;
+            }
+        }
+        else {
+            this.gamestate = GameState.GameOver;
+        }
+    }
+    overState() {
+        this.lostText.drawText(this.ctx);
+        if (this.keyListener.isKeyDown(KeyboardListener.KEY_R)) {
+            this.LevelViews.splice(0, this.LevelViews.length);
+            this.initializeLevels();
+            this.gamestate = GameState.Load;
         }
     }
 }
@@ -127,6 +146,8 @@ Game.IMG_PATH = "./assets/img/";
 Game.AUDIO_PATH = "./assets/audio/";
 Game.AMOUNT_OF_LEVELS = 3;
 Game.AMOUNT_OF_INFO = 2;
+Game.AMOUNT_OF_LIVES = 3;
+Game.AMOUNT_OF_ENEMIES = 2;
 class Logic {
     constructor(repo, width, height) {
         this._frames = 0;
@@ -156,23 +177,26 @@ class Logic {
         return statement;
     }
 }
-class Level extends Logic {
+class LevelLogic extends Logic {
     constructor(config, repo, width, height) {
         super(repo, width, height);
         this.currentPlayerImgIndex = { state: 0 };
         this._score = 0;
+        this._lives = Game.AMOUNT_OF_LIVES;
         this.blocks = [];
         this.water = [];
         this.coins = [];
         this.spikes = [];
         this.enemies = [];
         this.infoObjects = [];
+        this.window = false;
         const entries = Object.entries(config);
         this.initializePlatforms(entries);
         this.initializeCoins();
         this.initializeWater(entries);
         this.initializeSpikes(entries);
         this.initializeInfo(entries);
+        this.initializeEnemies(entries);
         this.keyboardListener = new KeyboardListener();
         const playerSprites = Player.PLAYER_SPRITES.map((key) => this.repo.getImage(key));
         this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 8, 10, playerSprites);
@@ -204,38 +228,59 @@ class Level extends Logic {
     initializeCoins() {
         const coinSprite = this.repo.getImage("coin");
         this.blocks.forEach((possibleSpawnBlock) => {
-            if (Math.round(Math.random()) === 1) {
-                this.coins.push(new Coin(possibleSpawnBlock.xPos, possibleSpawnBlock.yPos - coinSprite.height, coinSprite));
+            const coin = new Coin(possibleSpawnBlock.xPos, possibleSpawnBlock.yPos - coinSprite.height - 5, coinSprite);
+            if (Math.round(Math.random()) === 1 && this.fullCollision(this.blocks, coin)[0] === false) {
+                this.coins.push(coin);
             }
         });
     }
     initializeSpikes(entries) {
     }
     initializeEnemies(entries) {
+        const enemySprite = this.repo.getImage("enemy");
+        const info = entries.find(entry => entry[0] === "questions")[1];
+        for (let i = 0; i < Game.AMOUNT_OF_ENEMIES; i++) {
+            const randomIndex = Math.floor(Math.random() * this.blocks.length);
+            const randomSpawn = this.blocks[randomIndex];
+            this.enemies.push(new Enemy(randomSpawn.xPos, randomSpawn.yPos - enemySprite.height, enemySprite, info[i].question, info[i].answer));
+        }
     }
     initializeInfo(entries) {
         const infoSprite = this.repo.getImage("info");
-        console.log(entries);
-        const info = entries.find(entry => entry[0] === "questions");
-        console.log(info);
+        const info = entries.find(entry => entry[0] === "questions")[1];
+        const tempInfoArr = [];
         for (let i = 0; i < Game.AMOUNT_OF_INFO; i++) {
             const randomIndex = Math.floor(Math.random() * this.blocks.length);
             const randomSpawn = this.blocks[randomIndex];
+            const newInfoObj = new InfoObject(randomSpawn.xPos, randomSpawn.yPos - randomSpawn.sprite.height, infoSprite, info[i].question, info[i].answer);
+            tempInfoArr.push(newInfoObj);
+        }
+        const retry = tempInfoArr.map(temp => {
+            if (this.fullCollision(this.blocks, temp)[0]) {
+                return true;
+            }
+            return false;
+        }).find(e => e === true);
+        if (retry) {
+            this.initializeInfo(entries);
+        }
+        else {
+            tempInfoArr.forEach(infoObj => this.infoObjects.push(infoObj));
         }
     }
-    fullCollision(entities) {
+    fullCollision(entities, compareEntity) {
         const bools = entities.map((entity, i) => {
-            const statement = (entity.xPos < this.player.xPos + this.repo.getImage("main_char_1").width
-                && entity.xPos > this.player.xPos
-                && entity.yPos < this.player.yPos + this.repo.getImage("main_char_1").height
-                && entity.yPos + this.repo.getImage("tile").height > this.player.yPos);
+            const statement = (entity.xPos <= compareEntity.xPos + compareEntity.sprite.width
+                && entity.xPos + entity.sprite.width >= compareEntity.xPos
+                && entity.yPos <= compareEntity.yPos + compareEntity.sprite.height
+                && entity.yPos + entity.sprite.height >= compareEntity.yPos);
             return [statement, i];
         });
         const result = bools.find(bool => bool[0] === true);
         return result === undefined ? [false, null] : result;
     }
     collidesWithCoin() {
-        const coinCollisionResult = this.fullCollision(this.coins);
+        const coinCollisionResult = this.fullCollision(this.coins, this.player);
         if (coinCollisionResult[0]) {
             const coinIndex = coinCollisionResult[1];
             this._score += this.coins[coinIndex].score;
@@ -311,6 +356,7 @@ class Level extends Logic {
                 this.player.gravity();
             }
             else {
+                this._lives--;
                 this.player.xPos = this.blocks[0].xPos + this.repo.getImage("main_char_1").width;
                 this.player.yPos = this.blocks[0].yPos - this.repo.getImage("main_char_1").height;
             }
@@ -335,8 +381,36 @@ class Level extends Logic {
     get score() {
         return this._score;
     }
-    collidesWithInfo() {
-        return this.fullCollision(this.infoObjects);
+    get lives() {
+        return this._lives;
+    }
+    interactsWithInfo() {
+        const result = this.fullCollision(this.infoObjects, this.player);
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_ENTER) && result[0]) {
+            this.window = true;
+            return result;
+        }
+        else if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_Q) && this.fullCollision(this.infoObjects, this.player)) {
+            this.window = false;
+            return result;
+        }
+        else {
+            return result;
+        }
+    }
+    interactWithEnemey() {
+        const result = this.fullCollision(this.enemies, this.player);
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_ENTER) && result[0]) {
+            this.window = true;
+            return result;
+        }
+        else if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_Q) && this.fullCollision(this.infoObjects, this.player)) {
+            this.window = false;
+            return result;
+        }
+        else {
+            return result;
+        }
     }
     playerActions() {
         const collidesWithStandableSide = this.collidesWithTopOfBlock();
@@ -349,21 +423,25 @@ class Level extends Logic {
         this.makePlayerJump();
     }
 }
-class LevelView extends Level {
+class LevelView extends LevelLogic {
     constructor(config, ctx, repo, width, height) {
         super(config, repo, width, height);
         this.ctx = ctx;
-        this.scoreText = new TextString(this.width - this.ctx.measureText("0000").width, 100, String(0));
+        this.scoreText = new TextString(this.width - this.ctx.measureText("Score 0000").width, this.height / 10 * 1, "Score " + String(0));
+        this.lifeText = new TextString(this.width - this.ctx.measureText("Lives 0000").width, this.height / 10 * 2, "Lives " + String(Game.AMOUNT_OF_LIVES));
     }
     drawLevel() {
         this.drawBackGround();
         this.drawBlocks();
         this.drawCoins();
+        this.drawEnemies();
         this.playerActions();
         this.drawPlayer();
         this.drawWater();
         this.drawScore();
         this.drawInfo();
+        this.drawInfoScreen();
+        this.drawLives();
     }
     drawBackGround() {
         const background = this.repo.getImage("Background_level1");
@@ -374,8 +452,13 @@ class LevelView extends Level {
     }
     drawScore() {
         this.scoreText.fillStyle = "white";
-        this.scoreText.text = String(this.score);
+        this.scoreText.text = "Score " + String(this.score);
         this.scoreText.drawText(this.ctx);
+    }
+    drawLives() {
+        this.lifeText.fillStyle = "white";
+        this.lifeText.text = "Lives " + String(this.lives);
+        this.lifeText.drawText(this.ctx);
     }
     drawCoins() {
         this.drawEntities(this.coins);
@@ -383,9 +466,28 @@ class LevelView extends Level {
     drawWater() {
         this.drawEntities(this.water);
     }
+    drawEnemies() {
+        this.drawEntities(this.enemies);
+    }
     drawInfoScreen() {
-        const result = this.collidesWithInfo();
-        if (result[0]) {
+        const result = this.interactsWithInfo();
+        if (this.window && result[0]) {
+            const index = result[1];
+            const infoObject = this.infoObjects[index];
+            const answer = infoObject.answer;
+            const question = infoObject.question;
+            const cy = this.height / 2 - 100;
+            const cx = this.width / 2 - 100;
+            const questionObj = new TextString(cx, cy + 50, question);
+            const answerObj = new TextString(cx, cy + 150, answer);
+            this.ctx.font = `${questionObj.fontSize}px ${questionObj.font}`;
+            const answerWidth = this.ctx.measureText(answer).width;
+            const questionWidth = this.ctx.measureText(question).width;
+            const width = answerWidth >= questionWidth ? answerWidth : questionWidth;
+            this.ctx.fillStyle = "white";
+            this.ctx.fillRect(cx - width, cy, width * 2, 200);
+            questionObj.drawText(this.ctx);
+            answerObj.drawText(this.ctx);
         }
     }
     drawBlocks() {
@@ -628,9 +730,11 @@ class Coin extends GameEntity {
 }
 Coin.SCORE = 10;
 class Enemy extends GameEntity {
-    constructor(x, y, sprite) {
+    constructor(x, y, sprite, question, answer) {
         super(x, y, 0, 0);
         this.img = sprite;
+        this._question = question;
+        this._answer = answer;
     }
     get sprite() {
         return this.img;
@@ -664,6 +768,9 @@ class MenuItem extends GameEntity {
         super(x, y);
         this.image = img;
     }
+    get sprite() {
+        return this.image;
+    }
     draw(ctx) {
         ctx.drawImage(this.image, this.xPos, this.yPos);
     }
@@ -686,6 +793,9 @@ class Player extends GameEntity {
     get sprites() {
         return this.images;
     }
+    get sprite() {
+        return this.images[0];
+    }
     draw(ctx, state) {
         ctx.drawImage(this.images[state], this.xPos, this.yPos);
     }
@@ -697,19 +807,27 @@ class Speaker extends GameEntity {
         super(x, y, velocity);
         this.image = img;
     }
+    get sprite() {
+        return this.image;
+    }
     draw(ctx) {
         ctx.drawImage(this.image, this.xPos, this.yPos);
     }
 }
 Speaker.SPEAKER_SPRITES = ["not-muted.png", "muted.png"];
 class Spike extends GameEntity {
-    constructor(x, y) {
-        super(x, y, 0);
+    constructor(x, y, sprite) {
+        super(x, y, 0, 0);
+        this.img = sprite;
+    }
+    get sprite() {
+        return this.img;
     }
     draw(ctx) {
-        ctx.drawImage;
+        ctx.drawImage(this.img, this.xPos, this.yPos);
     }
 }
+Spike.SPRITE = [""];
 class Water extends GameEntity {
     constructor(x, y, sprite) {
         super(x, y, 0, 0);
@@ -780,6 +898,8 @@ KeyboardListener.KEY_RIGHT = 39;
 KeyboardListener.KEY_DOWN = 40;
 KeyboardListener.KEY_ENTER = 13;
 KeyboardListener.KEY_ESCAPE = 27;
+KeyboardListener.KEY_Q = 81;
+KeyboardListener.KEY_R = 82;
 class RandomNumber {
     static randomNumber(min, max) {
         return Math.round(Math.random() * (max - min) + min);
@@ -819,8 +939,6 @@ var GameState;
     GameState[GameState["Load"] = 0] = "Load";
     GameState[GameState["Main"] = 1] = "Main";
     GameState[GameState["Play"] = 2] = "Play";
+    GameState[GameState["GameOver"] = 3] = "GameOver";
 })(GameState || (GameState = {}));
-var LevelState;
-(function (LevelState) {
-})(LevelState || (LevelState = {}));
 //# sourceMappingURL=app.js.map

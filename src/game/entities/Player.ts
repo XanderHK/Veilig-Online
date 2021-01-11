@@ -5,14 +5,22 @@ class Player extends GameEntity {
     private images: HTMLImageElement[];
 
 
+    /**
+     * Constructs the player
+     * @param {number} x 
+     * @param {number} y
+     * @param {number} velocityX
+     * @param {number} velocityY
+     * @param {HTMLImageElement[]} sprites
+     */
     public constructor(x: number, y: number, velocityX: number, velocityY: number, sprites: HTMLImageElement[]) {
         super(x, y, velocityX, velocityY);
         this.images = sprites;
     }
 
     /**
-     * 
-     * @param direction 
+     * increments the xpos of the player instance by x amount of pixels every frame
+     * @param {boolean} direction 
      */
     public move(direction: boolean) {
         const nextXPos = this.xPos + (direction ? this.velocityX : -this.velocityX);
@@ -21,30 +29,37 @@ class Player extends GameEntity {
     }
 
     /**
-     * 
+     * decrements the ypos of the player resulting in it moving upwards on the canvas
      */
     public jump() {
         this.yPos -= this.velocityY;
     }
 
     /**
-     * 
+     * increments the ypos of the player resulting in it moving downwards on the canvas
      */
     public gravity() {
         this.yPos += this.velocityY / 2;
     }
 
     /**
-     * 
+     * Gets all the sprites from the player instance
      */
     public get sprites(): HTMLImageElement[] {
         return this.images;
     }
 
     /**
-     * 
-     * @param ctx 
-     * @param state 
+     * Gets the first sprite of the player object
+     */
+    public get sprite(): HTMLImageElement {
+        return this.images[0];
+    }
+
+    /**
+     * Draws one of the sprites of the player depending on what number the state is
+     * @param {CanvasRenderingContext2D} ctx 
+     * @param {number} state 
      */
     public draw(ctx: CanvasRenderingContext2D, state: number) {
         ctx.drawImage(this.images[state], this.xPos, this.yPos);

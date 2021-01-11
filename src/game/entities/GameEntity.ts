@@ -86,4 +86,6 @@ abstract class GameEntity {
 
     public abstract draw(ctx: CanvasRenderingContext2D, state?: number): void
 
+    public abstract get sprite(): HTMLImageElement
+
 }
