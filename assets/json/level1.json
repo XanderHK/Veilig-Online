@@ -33,5 +33,7 @@
                     { "xStart": 1250, "xEnd": 1300, "yStart": 650, "yEnd": 550 },
                     { "xStart": 1300, "xEnd": 1300, "yStart": 650, "yEnd": 550 }
                 ],
-                "spikes": [{ "xStart": 0, "xEnd": 1950, "yStart": 900, "yEnd": 1050 }]
+                "spikes": [{ "xStart": 0, "xEnd": 1950, "yStart": 900, "yEnd": 1050 }],
+                "questions" : [{"answer" : "blub", "questions" : "bloop"}, {"answer" : "bloop", "question" : "blub"}],
+                "info" : [{"xStart" : 50, "yStart" : 750}]
 }

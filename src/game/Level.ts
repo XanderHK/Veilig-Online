@@ -31,6 +31,7 @@ abstract class Level extends Logic {
         this.initializeCoins();
         this.initializeWater(entries);
         this.initializeSpikes(entries);
+        this.initializeInfo(entries);
         this.keyboardListener = new KeyboardListener();
 
         const playerSprites: HTMLImageElement[] = Player.PLAYER_SPRITES.map((key: string) => this.repo.getImage(key))
@@ -38,6 +39,9 @@ abstract class Level extends Logic {
 
     }
 
+    /**
+     * Returns the value of the name property
+     */
     public get name(): string {
         return this._name;
     }
@@ -79,12 +83,39 @@ abstract class Level extends Logic {
     }
 
     /**
-     * 
-     * @param entries 
+     * Iniitializes the spike objects that should be drawn on the canvas
+     * @param {[string, any][]} entries
      */
     private initializeSpikes(entries: [string, any][]) {
 
     }
+
+    /**
+ * Iniitializes the enemy objects that should be drawn on the canvas
+ * @param {[string, any][]} entries
+ */
+    private initializeEnemies(entries: [string, any][]) {
+
+    }
+
+
+
+    /**
+ * Initializes the info objects that should be drawn on the canvas
+ * * @param {[string, any][]} entries
+ */
+    private initializeInfo(entries: [string, any][]) {
+        const infoSprite = this.repo.getImage("info");
+        console.log(entries);
+        const info = entries.find(entry => entry[0] === "questions")
+        console.log(info)
+        for (let i = 0; i < Game.AMOUNT_OF_INFO; i++) {
+            const randomIndex: number = Math.floor(Math.random() * this.blocks.length);
+            const randomSpawn: Block = this.blocks[randomIndex];
+            //this.infoObjects.push(new InfoObject(randomSpawn.xPos, randomSpawn.yPos - randomSpawn.sprite.height, infoSprite));
+        }
+    }
+
 
     /**
      * Collision method that checks if something collides with something else (e.g. player and coins)
@@ -258,10 +289,14 @@ abstract class Level extends Logic {
         return this._score;
     }
 
+    protected collidesWithInfo() {
+        return this.fullCollision(this.infoObjects);
+    }
+
     /**
      * Bundle method that invokes every player movement related method
      */
-    protected movePlayer() {
+    protected playerActions() {
         const collidesWithStandableSide: boolean = this.collidesWithTopOfBlock();
         const collidesWithNoneStandableSide = this.collidesWithLeftRightOrBottom();
         this.collidesWithCoin();

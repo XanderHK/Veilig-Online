@@ -25,10 +25,11 @@ class LevelView extends Level {
         this.drawBackGround();
         this.drawBlocks();
         this.drawCoins();
-        this.movePlayer();
+        this.playerActions();
         this.drawPlayer();
         this.drawWater();
         this.drawScore();
+        this.drawInfo();
     }
 
     /**
@@ -37,6 +38,10 @@ class LevelView extends Level {
     private drawBackGround() {
         const background = this.repo.getImage("Background_level1");
         this.ctx.drawImage(background, (this.width / 2) - (background.width / 2), (this.height / 2) - (background.height / 2), background.width, background.height);
+    }
+
+    private drawInfo() {
+        this.drawEntities(this.infoObjects);
     }
 
     private drawScore() {
@@ -51,6 +56,13 @@ class LevelView extends Level {
 
     private drawWater() {
         this.drawEntities(this.water)
+    }
+
+    private drawInfoScreen() {
+        const result = this.collidesWithInfo();
+        if (result[0]) {
+
+        }
     }
 
 

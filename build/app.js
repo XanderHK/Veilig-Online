@@ -56,7 +56,6 @@ class Game {
             const promise = yield fetch(`./assets/json/level${n}.json`);
             const response = yield promise.json();
             response["water"] = [{ xStart: 0, xEnd: this.canvas.width, yStart: this.canvas.height - this.repo.getImage("water").height, yEnd: 1050 }];
-            console.log(response);
             this.LevelViews.push(new LevelView(response, this.ctx, this.repo, this.canvas.width, this.canvas.height));
         }));
     }
@@ -70,6 +69,7 @@ class Game {
             "Background_level1.png",
             "water.png",
             "coin.png",
+            "info.png",
             ...Speaker.SPEAKER_SPRITES
         ].concat(Array(37).fill(null).map((e, i) => `background/${i}.jpg`)).concat(Player.PLAYER_SPRITES.map((sprite) => `player/${sprite}`));
         this.repo = new ImageLoader(this.repoKeys, Game.IMG_PATH);
@@ -126,6 +126,7 @@ class Game {
 Game.IMG_PATH = "./assets/img/";
 Game.AUDIO_PATH = "./assets/audio/";
 Game.AMOUNT_OF_LEVELS = 3;
+Game.AMOUNT_OF_INFO = 2;
 class Logic {
     constructor(repo, width, height) {
         this._frames = 0;
@@ -171,6 +172,7 @@ class Level extends Logic {
         this.initializeCoins();
         this.initializeWater(entries);
         this.initializeSpikes(entries);
+        this.initializeInfo(entries);
         this.keyboardListener = new KeyboardListener();
         const playerSprites = Player.PLAYER_SPRITES.map((key) => this.repo.getImage(key));
         this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 8, 10, playerSprites);
@@ -208,6 +210,18 @@ class Level extends Logic {
         });
     }
     initializeSpikes(entries) {
+    }
+    initializeEnemies(entries) {
+    }
+    initializeInfo(entries) {
+        const infoSprite = this.repo.getImage("info");
+        console.log(entries);
+        const info = entries.find(entry => entry[0] === "questions");
+        console.log(info);
+        for (let i = 0; i < Game.AMOUNT_OF_INFO; i++) {
+            const randomIndex = Math.floor(Math.random() * this.blocks.length);
+            const randomSpawn = this.blocks[randomIndex];
+        }
     }
     fullCollision(entities) {
         const bools = entities.map((entity, i) => {
@@ -321,7 +335,10 @@ class Level extends Logic {
     get score() {
         return this._score;
     }
-    movePlayer() {
+    collidesWithInfo() {
+        return this.fullCollision(this.infoObjects);
+    }
+    playerActions() {
         const collidesWithStandableSide = this.collidesWithTopOfBlock();
         const collidesWithNoneStandableSide = this.collidesWithLeftRightOrBottom();
         this.collidesWithCoin();
@@ -342,14 +359,18 @@ class LevelView extends Level {
         this.drawBackGround();
         this.drawBlocks();
         this.drawCoins();
-        this.movePlayer();
+        this.playerActions();
         this.drawPlayer();
         this.drawWater();
         this.drawScore();
+        this.drawInfo();
     }
     drawBackGround() {
         const background = this.repo.getImage("Background_level1");
         this.ctx.drawImage(background, (this.width / 2) - (background.width / 2), (this.height / 2) - (background.height / 2), background.width, background.height);
+    }
+    drawInfo() {
+        this.drawEntities(this.infoObjects);
     }
     drawScore() {
         this.scoreText.fillStyle = "white";
@@ -361,6 +382,11 @@ class LevelView extends Level {
     }
     drawWater() {
         this.drawEntities(this.water);
+    }
+    drawInfoScreen() {
+        const result = this.collidesWithInfo();
+        if (result[0]) {
+        }
     }
     drawBlocks() {
         this.drawEntities(this.blocks);
@@ -602,11 +628,35 @@ class Coin extends GameEntity {
 }
 Coin.SCORE = 10;
 class Enemy extends GameEntity {
+    constructor(x, y, sprite) {
+        super(x, y, 0, 0);
+        this.img = sprite;
+    }
+    get sprite() {
+        return this.img;
+    }
     draw(ctx) {
+        ctx.drawImage(this.img, this.xPos, this.yPos);
     }
 }
 class InfoObject extends GameEntity {
+    constructor(x, y, sprite, question, answer) {
+        super(x, y, 0, 0);
+        this.img = sprite;
+        this._question = question;
+        this._answer = answer;
+    }
+    get sprite() {
+        return this.img;
+    }
+    get answer() {
+        return this._answer;
+    }
+    get question() {
+        return this._question;
+    }
     draw(ctx) {
+        ctx.drawImage(this.img, this.xPos, this.yPos);
     }
 }
 class MenuItem extends GameEntity {

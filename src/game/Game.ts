@@ -7,6 +7,7 @@ class Game {
     public static readonly IMG_PATH = "./assets/img/";
     public static readonly AUDIO_PATH = "./assets/audio/";
     public static readonly AMOUNT_OF_LEVELS = 3;
+    public static readonly AMOUNT_OF_INFO = 2;
 
     // The canvas
     private canvas: HTMLCanvasElement;
@@ -53,8 +54,7 @@ class Game {
             const promise = await fetch(`./assets/json/level${n}.json`)
             const response = await promise.json();
             response["water"] = [{ xStart: 0, xEnd: this.canvas.width, yStart: this.canvas.height - this.repo.getImage("water").height, yEnd: 1050 }];
-            console.log(response)
-            this.LevelViews.push(new LevelView(response, this.ctx, this.repo, this.canvas.width, this.canvas.height));
+            this.LevelViews.push(new LevelView(response as Config, this.ctx, this.repo, this.canvas.width, this.canvas.height));
         })
     }
     /**
@@ -70,6 +70,7 @@ class Game {
             "Background_level1.png",
             "water.png",
             "coin.png",
+            "info.png",
             ...Speaker.SPEAKER_SPRITES
         ].concat(Array(37).fill(null).map((e, i) => `background/${i}.jpg`)).concat(Player.PLAYER_SPRITES.map((sprite) => `player/${sprite}`));
         this.repo = new ImageLoader(this.repoKeys, Game.IMG_PATH);

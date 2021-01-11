@@ -3,5 +3,6 @@
                 "platforms": [
                     { "xStart": 0, "xEnd": 200, "yStart": 700, "yEnd": 750 }
                 ],
+                  "questions" : [{"answer" : "blub", "questions" : "bloop"}, {"answer" : "bloop", "question" : "blub"}],
                 "spikes": [{ "xStart": 0, "xEnd": 1950, "yStart": 900, "yEnd": 1050 }]
 }
