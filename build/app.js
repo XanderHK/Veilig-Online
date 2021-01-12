@@ -76,6 +76,12 @@ class Game {
             "coin.png",
             "info.png",
             "enemy.png",
+            "winter.png",
+            "lava.jpg",
+            "Forest.jpg",
+            "wintertile.png",
+            "lavatile.png",
+            "tile.png",
             ...Speaker.SPEAKER_SPRITES
         ].concat(Array(37).fill(null).map((e, i) => `background/${i}.jpg`)).concat(Player.PLAYER_SPRITES.map((sprite) => `player/${sprite}`));
         this.repo = new ImageLoader(this.repoKeys, Game.IMG_PATH);
@@ -190,22 +196,24 @@ class LevelLogic extends Logic {
         this.enemies = [];
         this.infoObjects = [];
         this.window = false;
-        const entries = Object.entries(config);
-        this.initializePlatforms(entries);
-        this.initializeCoins();
-        this.initializeWater(entries);
-        this.initializeSpikes(entries);
-        this.initializeInfo(entries);
-        this.initializeEnemies(entries);
+        this.entries = Object.entries(config);
+        this.backgroundImage = this.repo.getImage(this.entries.find(e => e[0] === "background")[1]);
+        this.tileKey = this.entries.find(e => e[0] === "tile")[1];
+        this.initializeEntities();
         this.keyboardListener = new KeyboardListener();
         const playerSprites = Player.PLAYER_SPRITES.map((key) => this.repo.getImage(key));
         this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 8, 10, playerSprites);
     }
-    get name() {
-        return this._name;
+    initializeEntities() {
+        this.initializePlatforms(this.entries);
+        this.initializeCoins();
+        this.initializeWater(this.entries);
+        this.initializeSpikes(this.entries);
+        this.initializeInfo(this.entries);
+        this.initializeEnemies(this.entries);
     }
     initializePlatforms(entries) {
-        const tileSprite = this.repo.getImage("tile");
+        const tileSprite = this.repo.getImage(this.tileKey);
         this._name = String(entries.find((entry) => entry[0] === "name")[1]);
         Object.values(entries.find(entry => entry[0] === "platforms")[1]).forEach((settings, i) => {
             const amountOfTiles = Math.floor((settings.xEnd - settings.xStart) / tileSprite.width);
@@ -267,6 +275,8 @@ class LevelLogic extends Logic {
         else {
             tempInfoArr.forEach(infoObj => this.infoObjects.push(infoObj));
         }
+    }
+    initialize(key, action) {
     }
     fullCollision(entities, compareEntity) {
         const bools = entities.map((entity, i) => {
@@ -422,6 +432,9 @@ class LevelLogic extends Logic {
     get lives() {
         return this._lives;
     }
+    get name() {
+        return this._name;
+    }
 }
 class LevelView extends LevelLogic {
     constructor(config, ctx, repo, width, height) {
@@ -444,8 +457,7 @@ class LevelView extends LevelLogic {
         this.drawLives();
     }
     drawBackGround() {
-        const background = this.repo.getImage("Background_level1");
-        this.ctx.drawImage(background, (this.width / 2) - (background.width / 2), (this.height / 2) - (background.height / 2), background.width, background.height);
+        this.ctx.drawImage(this.backgroundImage, (this.width / 2) - (this.backgroundImage.width / 2), (this.height / 2) - (this.backgroundImage.height / 2), this.backgroundImage.width, this.backgroundImage.height);
     }
     drawInfo() {
         this.drawEntities(this.infoObjects);

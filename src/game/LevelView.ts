@@ -41,8 +41,7 @@ class LevelView extends LevelLogic {
      * Method that draws the background
      */
     private drawBackGround() {
-        const background = this.repo.getImage("Background_level1");
-        this.ctx.drawImage(background, (this.width / 2) - (background.width / 2), (this.height / 2) - (background.height / 2), background.width, background.height);
+        this.ctx.drawImage(this.backgroundImage, (this.width / 2) - (this.backgroundImage.width / 2), (this.height / 2) - (this.backgroundImage.height / 2), this.backgroundImage.width, this.backgroundImage.height);
     }
 
     private drawInfo() {

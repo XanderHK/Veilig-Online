@@ -79,6 +79,12 @@ class Game {
             "coin.png",
             "info.png",
             "enemy.png",
+            "winter.png",
+            "lava.jpg",
+            "Forest.jpg",
+            "wintertile.png",
+            "lavatile.png",
+            "tile.png",
             ...Speaker.SPEAKER_SPRITES
         ].concat(Array(37).fill(null).map((e, i) => `background/${i}.jpg`)).concat(Player.PLAYER_SPRITES.map((sprite) => `player/${sprite}`));
         this.repo = new ImageLoader(this.repoKeys, Game.IMG_PATH);

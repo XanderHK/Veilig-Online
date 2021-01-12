@@ -17,6 +17,9 @@ abstract class LevelLogic extends Logic {
     protected infoObjects: InfoObject[] = [];
     protected player: Player;
     protected window: boolean = false;
+    protected entries: [string, any][];
+    protected backgroundImage: HTMLImageElement;
+    protected tileKey: string;
 
 
     /**
@@ -28,13 +31,10 @@ abstract class LevelLogic extends Logic {
      */
     public constructor(config: Config, repo: ImageLoader, width: number, height: number) {
         super(repo, width, height);
-        const entries: [string, any][] = Object.entries(config);
-        this.initializePlatforms(entries);
-        this.initializeCoins();
-        this.initializeWater(entries);
-        this.initializeSpikes(entries);
-        this.initializeInfo(entries);
-        this.initializeEnemies(entries);
+        this.entries = Object.entries(config);
+        this.backgroundImage = this.repo.getImage(this.entries.find(e => e[0] === "background")[1])
+        this.tileKey = this.entries.find(e => e[0] === "tile")[1];
+        this.initializeEntities();
         this.keyboardListener = new KeyboardListener();
 
         const playerSprites: HTMLImageElement[] = Player.PLAYER_SPRITES.map((key: string) => this.repo.getImage(key))
@@ -42,11 +42,13 @@ abstract class LevelLogic extends Logic {
 
     }
 
-    /**
-     * Returns the value of the name property
-     */
-    public get name(): string {
-        return this._name;
+    private initializeEntities() {
+        this.initializePlatforms(this.entries);
+        this.initializeCoins();
+        this.initializeWater(this.entries);
+        this.initializeSpikes(this.entries);
+        this.initializeInfo(this.entries);
+        this.initializeEnemies(this.entries);
     }
 
     /**
@@ -54,7 +56,7 @@ abstract class LevelLogic extends Logic {
      * @param {[string, any][]} entries 
      */
     private initializePlatforms(entries: [string, any][]) {
-        const tileSprite = this.repo.getImage("tile");
+        const tileSprite = this.repo.getImage(this.tileKey);
         this._name = String(entries.find((entry) => entry[0] === "name")[1]);
         Object.values(entries.find(entry => entry[0] === "platforms")[1]).forEach((settings: { xStart: number; xEnd: number; yStart: number; yEnd: number; }, i: number) => {
             const amountOfTiles = Math.floor((settings.xEnd - settings.xStart) / tileSprite.width);
@@ -134,6 +136,10 @@ abstract class LevelLogic extends Logic {
         } else {
             tempInfoArr.forEach(infoObj => this.infoObjects.push(infoObj))
         }
+    }
+
+    private initialize(key: string, action: Function) {
+
     }
 
 
@@ -354,5 +360,12 @@ abstract class LevelLogic extends Logic {
 
     public get lives(): number {
         return this._lives;
+    }
+
+    /**
+  * Returns the value of the name property
+  */
+    public get name(): string {
+        return this._name;
     }
 }
