@@ -327,9 +327,6 @@ class LevelLogic extends Logic {
             }
         }
     }
-    get playerImageIndex() {
-        return this.currentPlayerImgIndex.state;
-    }
     hitsBottom() {
         return this.player.yPos + this.repo.getImage("main_char_1").height >= this.height;
     }
@@ -378,12 +375,6 @@ class LevelLogic extends Logic {
             }
         }
     }
-    get score() {
-        return this._score;
-    }
-    get lives() {
-        return this._lives;
-    }
     interactsWithInfo() {
         const result = this.fullCollision(this.infoObjects, this.player);
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_ENTER) && result[0]) {
@@ -412,6 +403,9 @@ class LevelLogic extends Logic {
             return result;
         }
     }
+    get playerImageIndex() {
+        return this.currentPlayerImgIndex.state;
+    }
     playerActions() {
         const collidesWithStandableSide = this.collidesWithTopOfBlock();
         const collidesWithNoneStandableSide = this.collidesWithLeftRightOrBottom();
@@ -421,6 +415,12 @@ class LevelLogic extends Logic {
         this.makePlayerFall(collidesWithStandableSide);
         this.idlePlayer();
         this.makePlayerJump();
+    }
+    get score() {
+        return this._score;
+    }
+    get lives() {
+        return this._lives;
     }
 }
 class LevelView extends LevelLogic {

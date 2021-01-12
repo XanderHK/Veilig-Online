@@ -223,14 +223,6 @@ abstract class LevelLogic extends Logic {
             }
         }
     }
-
-    /**
-     * returns the current image index from Player.SPRITES
-     */
-    protected get playerImageIndex(): number {
-        return this.currentPlayerImgIndex.state;
-    }
-
     /**
      * Checks if the player hits the bottom of the screen
      */
@@ -305,15 +297,6 @@ abstract class LevelLogic extends Logic {
         }
     }
 
-
-    public get score(): number {
-        return this._score;
-    }
-
-    public get lives(): number {
-        return this._lives;
-    }
-
     protected interactsWithInfo() {
         const result = this.fullCollision(this.infoObjects, this.player);
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_ENTER) && result[0]) {
@@ -342,6 +325,15 @@ abstract class LevelLogic extends Logic {
 
 
     /**
+     * returns the current image index from Player.SPRITES
+     */
+    protected get playerImageIndex(): number {
+        return this.currentPlayerImgIndex.state;
+    }
+
+
+
+    /**
      * Bundle method that invokes every player movement related method
      */
     protected playerActions() {
@@ -353,5 +345,14 @@ abstract class LevelLogic extends Logic {
         this.makePlayerFall(collidesWithStandableSide);
         this.idlePlayer();
         this.makePlayerJump();
+    }
+
+
+    public get score(): number {
+        return this._score;
+    }
+
+    public get lives(): number {
+        return this._lives;
     }
 }
