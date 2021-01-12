@@ -24,7 +24,7 @@ abstract class GameEntity {
         return [xVel, yVel]
     }
 
-    /**
+    /**rewrew
      * Getter for the speed of the instance
      * @returns {number} - returns a number
      */
