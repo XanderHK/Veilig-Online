@@ -17,6 +17,11 @@ abstract class GameEntity {
         [this._velocityX, this._velocityY] = this.calculateVelocity(velocityX, velocityY)
     }
 
+    /**
+     * 
+     * @param {number} velocityX 
+     * @param {number} velocityY 
+     */
     private calculateVelocity(velocityX: number, velocityY: number) {
         const diff = window.fps / Game.BASELINE_FPS;
         const xVel = Math.round(velocityX / diff);
