@@ -154,6 +154,7 @@ Game.AMOUNT_OF_LEVELS = 3;
 Game.AMOUNT_OF_INFO = 2;
 Game.AMOUNT_OF_LIVES = 3;
 Game.AMOUNT_OF_ENEMIES = 2;
+Game.BASELINE_FPS = 60;
 class Logic {
     constructor(repo, width, height) {
         this._frames = 0;
@@ -178,7 +179,7 @@ class Logic {
     }
     animate(ms) {
         const timePerFrameSec = 1000 / window.fps;
-        const amountOfFrames = Math.floor(ms / timePerFrameSec);
+        const amountOfFrames = Math.round(ms / timePerFrameSec);
         const statement = this._frames % amountOfFrames === 0;
         return statement;
     }
@@ -203,6 +204,7 @@ class LevelLogic extends Logic {
         this.keyboardListener = new KeyboardListener();
         const playerSprites = Player.PLAYER_SPRITES.map((key) => this.repo.getImage(key));
         this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 8, 10, playerSprites);
+        console.log(this.player.velocityX);
     }
     initializeEntities() {
         this.initializePlatforms(this.entries);
@@ -684,8 +686,13 @@ class GameEntity {
     constructor(x, y, velocityX = 0, velocityY = 0) {
         this._xPos = x;
         this._yPos = y;
-        this._velocityX = velocityX;
-        this._velocityY = velocityY;
+        [this._velocityX, this._velocityY] = this.calculateVelocity(velocityX, velocityY);
+    }
+    calculateVelocity(velocityX, velocityY) {
+        const diff = window.fps / Game.BASELINE_FPS;
+        const xVel = Math.round(velocityX / diff);
+        const yVel = Math.round(velocityY / diff);
+        return [xVel, yVel];
     }
     get velocityX() {
         return this._velocityX;

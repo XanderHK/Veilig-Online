@@ -10,6 +10,7 @@ class Game {
     public static readonly AMOUNT_OF_INFO = 2;
     public static readonly AMOUNT_OF_LIVES = 3;
     public static readonly AMOUNT_OF_ENEMIES = 2;
+    public static readonly BASELINE_FPS = 60;
 
     // The canvas
     private canvas: HTMLCanvasElement;

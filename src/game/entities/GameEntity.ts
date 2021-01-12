@@ -14,8 +14,14 @@ abstract class GameEntity {
     public constructor(x: number, y: number, velocityX: number = 0, velocityY: number = 0) {
         this._xPos = x;
         this._yPos = y;
-        this._velocityX = velocityX;
-        this._velocityY = velocityY;
+        [this._velocityX, this._velocityY] = this.calculateVelocity(velocityX, velocityY)
+    }
+
+    private calculateVelocity(velocityX: number, velocityY: number) {
+        const diff = window.fps / Game.BASELINE_FPS;
+        const xVel = Math.round(velocityX / diff);
+        const yVel = Math.round(velocityY / diff);
+        return [xVel, yVel]
     }
 
     /**

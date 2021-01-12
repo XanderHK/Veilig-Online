@@ -59,7 +59,7 @@ abstract class Logic {
      */
     public animate(ms: number): boolean {
         const timePerFrameSec = 1000 / window.fps;
-        const amountOfFrames = Math.floor(ms / timePerFrameSec)
+        const amountOfFrames = Math.round(ms / timePerFrameSec)
         const statement = this._frames % amountOfFrames === 0;
         return statement
     }
