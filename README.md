@@ -1,5 +1,5 @@
 # About
-This is a game created using Typescript, the game is intended to teach childeren the hazards of online malicious intent and how to prevent it.
+This is a game created using Typescript, the game is intended to teach childeren online safety and the frequent hazards one can encounter, and how to prevent it!
 
 # Installing TypeScript
 
