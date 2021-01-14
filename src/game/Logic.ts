@@ -4,6 +4,8 @@ abstract class Logic {
     private _repo: ImageLoader;
     private _width: number;
     private _height: number;
+    private _cx: number;
+    private _cy: number;
 
     /**
      * Constructs the logic object
@@ -15,6 +17,16 @@ abstract class Logic {
         this._repo = repo;
         this._width = width;
         this._height = height;
+        this._cx = this.width / 2;
+        this._cy = this.height / 2;
+    }
+
+    public get cx(): number {
+        return this._cx;
+    }
+
+    public get cy(): number {
+        return this._cy;
     }
 
     /**

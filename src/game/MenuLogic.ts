@@ -153,9 +153,6 @@ abstract class MenuLogic extends Logic {
      * Mute method
      */
     protected mute() {
-        /**
-           * TODO delegate all click events to the clickhandler
-           */
         window.addEventListener("click", event => {
             const referenceImg = this.repo.getImage("muted")
             if (

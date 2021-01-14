@@ -1,5 +1,4 @@
 class ImageLoader {
-
     private images: { key: string, image: HTMLImageElement }[] = [];
     private loadingAssets: string[] = []
 
@@ -21,13 +20,17 @@ class ImageLoader {
      */
     private loadImage(path: string) {
         const image = new Image();
-        const key = path.split("/").pop().split(".").shift();
+        const key = (path.includes("|") ? path.split(" |").shift() : path).split("/").pop().split(".").shift();
         image.addEventListener("load", () => {
+            if (!path.includes("|") && Calculate.BASELINE_WIDTH !== window.innerWidth && Calculate.BASELINE_HEIGHT !== window.innerHeight) {
+                image.width = image.width * Calculate.calculateWidthMultiplier();
+                image.height = image.height * Calculate.calculateHeightMultiplier();
+            }
             this.images.push({ key: key, image: image });
             this.loadingAssets.splice(this.loadingAssets.indexOf(key), 1)
         })
         this.loadingAssets.push(key)
-        image.src = path;
+        image.src = (path.includes("|") ? path.split(" |").shift() : path);
     }
 
     /**
@@ -36,6 +39,7 @@ class ImageLoader {
     public isLoading(): boolean {
         return this.loadingAssets.length > 0;
     }
+
 
     /**
      * Returns a image depending on what key is supplied

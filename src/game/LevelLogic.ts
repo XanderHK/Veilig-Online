@@ -38,15 +38,12 @@ abstract class LevelLogic extends Logic {
         this.keyboardListener = new KeyboardListener();
         const playerSprites: HTMLImageElement[] = Player.PLAYER_SPRITES.map((key: string) => this.repo.getImage(key))
         this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 8, 10, playerSprites);
-        console.log(this.player.velocityX)
-
     }
 
     private initializeEntities() {
         this.initializePlatforms(this.entries);
         this.initializeCoins();
         this.initializeWater(this.entries);
-        this.initializeSpikes(this.entries);
         this.initializeInfo(this.entries);
         this.initializeEnemies(this.entries);
     }
@@ -89,15 +86,7 @@ abstract class LevelLogic extends Logic {
     }
 
     /**
-     * Iniitializes the spike objects that should be drawn on the canvas
-     * @param {[string, any][]} entries
-     */
-    private initializeSpikes(entries: [string, any][]) {
-
-    }
-
-    /**
- * Iniitializes the enemy objects that should be drawn on the canvas
+ * Initializes the enemy objects that should be drawn on the canvas
  * @param {[string, any][]} entries
  */
     private initializeEnemies(entries: [string, any][]) {
@@ -137,11 +126,6 @@ abstract class LevelLogic extends Logic {
             tempInfoArr.forEach(infoObj => this.infoObjects.push(infoObj))
         }
     }
-
-    private initialize(key: string, action: Function) {
-
-    }
-
 
     /**
      * Collision method that checks if something collides with something else (e.g. player and coins)
@@ -303,30 +287,52 @@ abstract class LevelLogic extends Logic {
         }
     }
 
-    protected interactsWithInfo() {
+    protected interactsWithInfo(): InfoObject {
         const result = this.fullCollision(this.infoObjects, this.player);
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_ENTER) && result[0]) {
             this.window = true;
-            return result
+            return this.infoObjects[result[1] as number]
         } else if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_Q) && this.fullCollision(this.infoObjects, this.player)) {
             this.window = false;
-            return result
-        } else {
-            return result
+            return this.infoObjects[result[1] as number]
         }
+        return this.infoObjects[result[1] as number]
+
     }
 
-    protected interactWithEnemey() {
+    protected interactsWithEnemy(): Enemy {
         const result = this.fullCollision(this.enemies, this.player);
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_ENTER) && result[0]) {
             this.window = true;
-            return result
+            return this.enemies[result[1] as number]
         } else if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_Q) && this.fullCollision(this.infoObjects, this.player)) {
             this.window = false;
-            return result
-        } else {
-            return result
+            return this.enemies[result[1] as number]
         }
+        return this.enemies[result[1] as number]
+
+    }
+
+    protected answerEnemy(enemy: Enemy) {
+        const a: boolean = this.keyboardListener.isKeyDown(KeyboardListener.KEY_A);
+        const b: boolean = this.keyboardListener.isKeyDown(KeyboardListener.KEY_B);
+
+        if (a || b) {
+            const answer = (a && !b) ? "JA" : ((!a && b) ? "NEE" : undefined)
+            if (enemy.answer === answer && answer !== undefined) {
+                this.enemies.splice(this.enemies.indexOf(enemy), 1)
+                this.window = false;
+            } else if (answer !== undefined && enemy.answer !== answer) {
+                if (this.window === true) {
+                    this._lives--;
+                }
+                this.window = false;
+            }
+        }
+    }
+
+    public isComplete() {
+        return this.enemies.length === 0
     }
 
 

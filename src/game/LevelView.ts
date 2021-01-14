@@ -16,8 +16,8 @@ class LevelView extends LevelLogic {
     public constructor(config: Config, ctx: CanvasRenderingContext2D, repo: ImageLoader, width: number, height: number) {
         super(config, repo, width, height);
         this.ctx = ctx;
-        this.scoreText = new TextString(this.width - this.ctx.measureText("Score 0000").width, this.height / 10 * 1, "Score " + String(0));
-        this.lifeText = new TextString(this.width - this.ctx.measureText("Lives 0000").width, this.height / 10 * 2, "Lives " + String(Game.AMOUNT_OF_LIVES))
+        this.scoreText = new TextString(this.width / 10 * 0.5 + this.ctx.measureText("Score 0000").width, this.height / 10 * 1, "Score " + String(0));
+        this.lifeText = new TextString(this.width / 10 * 0.5 + this.ctx.measureText("Lives 0000").width, this.height / 10 * 2, "Lives " + String(Game.AMOUNT_OF_LIVES))
     }
 
     /**
@@ -34,6 +34,7 @@ class LevelView extends LevelLogic {
         this.drawScore();
         this.drawInfo();
         this.drawInfoScreen();
+        this.drawEnemyScreen();
         this.drawLives();
     }
 
@@ -49,6 +50,7 @@ class LevelView extends LevelLogic {
     }
 
     private drawScore() {
+        this.scoreText.x
         this.scoreText.fillStyle = "white";
         this.scoreText.text = "Score " + String(this.score);
         this.scoreText.drawText(this.ctx);
@@ -74,16 +76,12 @@ class LevelView extends LevelLogic {
 
     private drawInfoScreen() {
         const result = this.interactsWithInfo();
-        if (this.window && result[0]) {
-            const index: number = result[1] as number;
-            const infoObject = this.infoObjects[index]
-            const answer = infoObject.answer;
-            const question = infoObject.question;
+        if (this.window && result !== undefined) {
+            const answer = result.answer
+            const question = result.question;
 
-            const cy = this.height / 2 - 100;
-            const cx = this.width / 2 - 100;
-            const questionObj: TextString = new TextString(cx, cy + 50, question)
-            const answerObj = new TextString(cx, cy + 150, answer)
+            const questionObj: TextString = new TextString(this.cx, this.cy + 50, question)
+            const answerObj = new TextString(this.cx, this.cy + 150, answer)
 
             this.ctx.font = `${questionObj.fontSize}px ${questionObj.font}`;
             const answerWidth = this.ctx.measureText(answer).width;
@@ -92,9 +90,31 @@ class LevelView extends LevelLogic {
             const width = answerWidth >= questionWidth ? answerWidth : questionWidth;
 
             this.ctx.fillStyle = "white";
-            this.ctx.fillRect(cx - width, cy, width * 2, 200)
+            this.ctx.fillRect(this.cx - width, this.cy, width * 2, 200)
             questionObj.drawText(this.ctx);
             answerObj.drawText(this.ctx);
+        }
+    }
+
+    private drawEnemyScreen() {
+        const result = this.interactsWithEnemy();
+        if (this.window && result !== undefined) {
+            const question = result.question;
+            const questionObj: TextString = new TextString(this.cx, this.cy + 50, question);
+
+            this.ctx.font = `${questionObj.fontSize}px ${questionObj.font}`;
+            const questionWidth = this.ctx.measureText(question).width;
+
+            this.ctx.fillStyle = "white";
+            this.ctx.fillRect(this.cx - questionWidth, this.cy, questionWidth * 2, 200);
+            ["JA", "NEE"].reduce((a, r) => {
+                new TextString(this.cx, this.cy + a, r).drawText(this.ctx);
+                a += 50;
+                return a;
+            }, 100)
+
+            this.answerEnemy(result);
+            questionObj.drawText(this.ctx);
         }
     }
 

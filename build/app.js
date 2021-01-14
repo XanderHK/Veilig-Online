@@ -20,16 +20,7 @@ class Game {
         this.last = 0;
         this.step = () => {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            const now = Date.now();
-            if (now - this.last >= 1000 && this.fps === 0) {
-                this.last = now;
-                this.fps = this.ticks;
-                window.fps = this.fps;
-                this.ticks = 0;
-            }
-            if (this.fps === 0) {
-                this.ticks++;
-            }
+            this.calculateFps();
             switch (this.gamestate) {
                 case GameState.Main:
                     this.mainState();
@@ -39,6 +30,12 @@ class Game {
                     break;
                 case GameState.GameOver:
                     this.overState();
+                    break;
+                case GameState.GameBeaten:
+                    this.winState();
+                    break;
+                case GameState.Instructions:
+                    this.instructionState();
                     break;
                 default:
                     this.loader();
@@ -51,6 +48,7 @@ class Game {
         this.initializeAssets();
         this.loadText = new TextString(this.canvas.width / 2, this.canvas.height / 2, "Loading...");
         this.lostText = new TextString(this.canvas.width / 2, this.canvas.height / 2, "Jij hebt verloren, druk op R om te herstarten.");
+        this.finishedText = new TextString(this.canvas.width / 2, this.canvas.height / 2, "Je hebt het hele spel uitgespeeld, gefeliciteerd!");
         this.step();
     }
     isLoading() {
@@ -60,7 +58,7 @@ class Game {
         [1, 2, 3].forEach((n) => __awaiter(this, void 0, void 0, function* () {
             const promise = yield fetch(`./assets/json/level${n}.json`);
             const response = yield promise.json();
-            response["water"] = [{ xStart: 0, xEnd: this.canvas.width, yStart: this.canvas.height - this.repo.getImage("water").height, yEnd: 1050 }];
+            response["water"] = [{ xStart: 0, xEnd: window.innerWidth, yStart: window.innerHeight - this.repo.getImage("water").height, yEnd: 1050 }];
             this.LevelViews.push(new LevelView(response, this.ctx, this.repo, this.canvas.width, this.canvas.height));
         }));
     }
@@ -76,9 +74,9 @@ class Game {
             "coin.png",
             "info.png",
             "enemy.png",
-            "winter.png",
-            "lava.jpg",
-            "Forest.jpg",
+            "winter.png |",
+            "lava.jpg |",
+            "Forest.jpg |",
             "wintertile.png",
             "lavatile.png",
             "tile.png",
@@ -117,9 +115,13 @@ class Game {
     }
     mainState() {
         this.getAllScore();
+        this.beatTheGame();
         this.menuView.frames = this.passedFrames;
         this.repoKeys = this.repoKeys.map((path) => path.split("/").pop().split(".").shift());
         this.menuView.drawMenu();
+        if (this.gamestate === GameState.Main && this.keyListener.isKeyDown(KeyboardListener.KEY_I)) {
+            this.gamestate = GameState.Instructions;
+        }
         const levelInteracted = this.menuView.interactsWithLevel();
         if (levelInteracted[0]) {
             this.gamestate = GameState.Play;
@@ -128,6 +130,9 @@ class Game {
     }
     playState() {
         const currentLevel = this.LevelViews[this.currentLevelIndex];
+        if (currentLevel.isComplete()) {
+            this.gamestate = GameState.Main;
+        }
         if (currentLevel.lives !== 0) {
             currentLevel.frames = this.passedFrames;
             currentLevel.drawLevel();
@@ -147,6 +152,37 @@ class Game {
             this.gamestate = GameState.Load;
         }
     }
+    beatTheGame() {
+        if (this.LevelViews.every((level) => level.isComplete() === true)) {
+            this.gamestate = GameState.GameBeaten;
+        }
+    }
+    winState() {
+        this.finishedText.drawText(this.ctx);
+        this.restart();
+    }
+    instructionState() {
+        if (this.keyListener.isKeyDown(KeyboardListener.KEY_ESCAPE)) {
+            this.gamestate = GameState.Main;
+        }
+    }
+    restart() {
+        if (this.gamestate === GameState.GameBeaten && this.keyListener.isKeyDown(KeyboardListener.KEY_R)) {
+            location.reload();
+        }
+    }
+    calculateFps() {
+        const now = Date.now();
+        if (now - this.last >= 1000 && this.fps === 0) {
+            this.last = now;
+            this.fps = this.ticks;
+            window.fps = this.fps;
+            this.ticks = 0;
+        }
+        if (this.fps === 0) {
+            this.ticks++;
+        }
+    }
 }
 Game.IMG_PATH = "./assets/img/";
 Game.AUDIO_PATH = "./assets/audio/";
@@ -155,12 +191,22 @@ Game.AMOUNT_OF_INFO = 2;
 Game.AMOUNT_OF_LIVES = 3;
 Game.AMOUNT_OF_ENEMIES = 2;
 Game.BASELINE_FPS = 60;
+class GameView {
+}
 class Logic {
     constructor(repo, width, height) {
         this._frames = 0;
         this._repo = repo;
         this._width = width;
         this._height = height;
+        this._cx = this.width / 2;
+        this._cy = this.height / 2;
+    }
+    get cx() {
+        return this._cx;
+    }
+    get cy() {
+        return this._cy;
     }
     get height() {
         return this._height;
@@ -204,13 +250,11 @@ class LevelLogic extends Logic {
         this.keyboardListener = new KeyboardListener();
         const playerSprites = Player.PLAYER_SPRITES.map((key) => this.repo.getImage(key));
         this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 8, 10, playerSprites);
-        console.log(this.player.velocityX);
     }
     initializeEntities() {
         this.initializePlatforms(this.entries);
         this.initializeCoins();
         this.initializeWater(this.entries);
-        this.initializeSpikes(this.entries);
         this.initializeInfo(this.entries);
         this.initializeEnemies(this.entries);
     }
@@ -244,8 +288,6 @@ class LevelLogic extends Logic {
             }
         });
     }
-    initializeSpikes(entries) {
-    }
     initializeEnemies(entries) {
         const enemySprite = this.repo.getImage("enemy");
         const info = entries.find(entry => entry[0] === "questions")[1];
@@ -277,8 +319,6 @@ class LevelLogic extends Logic {
         else {
             tempInfoArr.forEach(infoObj => this.infoObjects.push(infoObj));
         }
-    }
-    initialize(key, action) {
     }
     fullCollision(entities, compareEntity) {
         const bools = entities.map((entity, i) => {
@@ -391,29 +431,45 @@ class LevelLogic extends Logic {
         const result = this.fullCollision(this.infoObjects, this.player);
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_ENTER) && result[0]) {
             this.window = true;
-            return result;
+            return this.infoObjects[result[1]];
         }
         else if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_Q) && this.fullCollision(this.infoObjects, this.player)) {
             this.window = false;
-            return result;
+            return this.infoObjects[result[1]];
         }
-        else {
-            return result;
-        }
+        return this.infoObjects[result[1]];
     }
-    interactWithEnemey() {
+    interactsWithEnemy() {
         const result = this.fullCollision(this.enemies, this.player);
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_ENTER) && result[0]) {
             this.window = true;
-            return result;
+            return this.enemies[result[1]];
         }
         else if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_Q) && this.fullCollision(this.infoObjects, this.player)) {
             this.window = false;
-            return result;
+            return this.enemies[result[1]];
         }
-        else {
-            return result;
+        return this.enemies[result[1]];
+    }
+    answerEnemy(enemy) {
+        const a = this.keyboardListener.isKeyDown(KeyboardListener.KEY_A);
+        const b = this.keyboardListener.isKeyDown(KeyboardListener.KEY_B);
+        if (a || b) {
+            const answer = (a && !b) ? "JA" : ((!a && b) ? "NEE" : undefined);
+            if (enemy.answer === answer && answer !== undefined) {
+                this.enemies.splice(this.enemies.indexOf(enemy), 1);
+                this.window = false;
+            }
+            else if (answer !== undefined && enemy.answer !== answer) {
+                if (this.window === true) {
+                    this._lives--;
+                }
+                this.window = false;
+            }
         }
+    }
+    isComplete() {
+        return this.enemies.length === 0;
     }
     get playerImageIndex() {
         return this.currentPlayerImgIndex.state;
@@ -442,8 +498,8 @@ class LevelView extends LevelLogic {
     constructor(config, ctx, repo, width, height) {
         super(config, repo, width, height);
         this.ctx = ctx;
-        this.scoreText = new TextString(this.width - this.ctx.measureText("Score 0000").width, this.height / 10 * 1, "Score " + String(0));
-        this.lifeText = new TextString(this.width - this.ctx.measureText("Lives 0000").width, this.height / 10 * 2, "Lives " + String(Game.AMOUNT_OF_LIVES));
+        this.scoreText = new TextString(this.width / 10 * 0.5 + this.ctx.measureText("Score 0000").width, this.height / 10 * 1, "Score " + String(0));
+        this.lifeText = new TextString(this.width / 10 * 0.5 + this.ctx.measureText("Lives 0000").width, this.height / 10 * 2, "Lives " + String(Game.AMOUNT_OF_LIVES));
     }
     drawLevel() {
         this.drawBackGround();
@@ -456,6 +512,7 @@ class LevelView extends LevelLogic {
         this.drawScore();
         this.drawInfo();
         this.drawInfoScreen();
+        this.drawEnemyScreen();
         this.drawLives();
     }
     drawBackGround() {
@@ -465,6 +522,7 @@ class LevelView extends LevelLogic {
         this.drawEntities(this.infoObjects);
     }
     drawScore() {
+        this.scoreText.x;
         this.scoreText.fillStyle = "white";
         this.scoreText.text = "Score " + String(this.score);
         this.scoreText.drawText(this.ctx);
@@ -485,23 +543,37 @@ class LevelView extends LevelLogic {
     }
     drawInfoScreen() {
         const result = this.interactsWithInfo();
-        if (this.window && result[0]) {
-            const index = result[1];
-            const infoObject = this.infoObjects[index];
-            const answer = infoObject.answer;
-            const question = infoObject.question;
-            const cy = this.height / 2 - 100;
-            const cx = this.width / 2 - 100;
-            const questionObj = new TextString(cx, cy + 50, question);
-            const answerObj = new TextString(cx, cy + 150, answer);
+        if (this.window && result !== undefined) {
+            const answer = result.answer;
+            const question = result.question;
+            const questionObj = new TextString(this.cx, this.cy + 50, question);
+            const answerObj = new TextString(this.cx, this.cy + 150, answer);
             this.ctx.font = `${questionObj.fontSize}px ${questionObj.font}`;
             const answerWidth = this.ctx.measureText(answer).width;
             const questionWidth = this.ctx.measureText(question).width;
             const width = answerWidth >= questionWidth ? answerWidth : questionWidth;
             this.ctx.fillStyle = "white";
-            this.ctx.fillRect(cx - width, cy, width * 2, 200);
+            this.ctx.fillRect(this.cx - width, this.cy, width * 2, 200);
             questionObj.drawText(this.ctx);
             answerObj.drawText(this.ctx);
+        }
+    }
+    drawEnemyScreen() {
+        const result = this.interactsWithEnemy();
+        if (this.window && result !== undefined) {
+            const question = result.question;
+            const questionObj = new TextString(this.cx, this.cy + 50, question);
+            this.ctx.font = `${questionObj.fontSize}px ${questionObj.font}`;
+            const questionWidth = this.ctx.measureText(question).width;
+            this.ctx.fillStyle = "white";
+            this.ctx.fillRect(this.cx - questionWidth, this.cy, questionWidth * 2, 200);
+            ["JA", "NEE"].reduce((a, r) => {
+                new TextString(this.cx, this.cy + a, r).drawText(this.ctx);
+                a += 50;
+                return a;
+            }, 100);
+            this.answerEnemy(result);
+            questionObj.drawText(this.ctx);
         }
     }
     drawBlocks() {
@@ -758,6 +830,12 @@ class Enemy extends GameEntity {
     get sprite() {
         return this.img;
     }
+    get question() {
+        return this._question;
+    }
+    get answer() {
+        return this._answer;
+    }
     draw(ctx) {
         ctx.drawImage(this.img, this.xPos, this.yPos);
     }
@@ -860,13 +938,16 @@ class Water extends GameEntity {
     }
 }
 Water.SPRITE = [""];
-class ClickHandler {
-    static click(instance, method, measurements) {
-        window.addEventListener("click", (event) => {
-            instance[method]();
-        });
+class Calculate {
+    static calculateWidthMultiplier() {
+        return (1 - Math.abs((window.innerWidth - Calculate.BASELINE_WIDTH) / Calculate.BASELINE_WIDTH));
+    }
+    static calculateHeightMultiplier() {
+        return (1 - Math.abs((window.innerHeight - Calculate.BASELINE_HEIGHT) / Calculate.BASELINE_HEIGHT));
     }
 }
+Calculate.BASELINE_WIDTH = 1920;
+Calculate.BASELINE_HEIGHT = 969;
 class ImageLoader {
     constructor(assets, prefix) {
         this.images = [];
@@ -878,13 +959,17 @@ class ImageLoader {
     }
     loadImage(path) {
         const image = new Image();
-        const key = path.split("/").pop().split(".").shift();
+        const key = (path.includes("|") ? path.split(" |").shift() : path).split("/").pop().split(".").shift();
         image.addEventListener("load", () => {
+            if (!path.includes("|") && Calculate.BASELINE_WIDTH !== window.innerWidth && Calculate.BASELINE_HEIGHT !== window.innerHeight) {
+                image.width = image.width * Calculate.calculateWidthMultiplier();
+                image.height = image.height * Calculate.calculateHeightMultiplier();
+            }
             this.images.push({ key: key, image: image });
             this.loadingAssets.splice(this.loadingAssets.indexOf(key), 1);
         });
         this.loadingAssets.push(key);
-        image.src = path;
+        image.src = (path.includes("|") ? path.split(" |").shift() : path);
     }
     isLoading() {
         return this.loadingAssets.length > 0;
@@ -919,6 +1004,9 @@ KeyboardListener.KEY_ENTER = 13;
 KeyboardListener.KEY_ESCAPE = 27;
 KeyboardListener.KEY_Q = 81;
 KeyboardListener.KEY_R = 82;
+KeyboardListener.KEY_A = 65;
+KeyboardListener.KEY_B = 66;
+KeyboardListener.KEY_I = 73;
 class RandomNumber {
     static randomNumber(min, max) {
         return Math.round(Math.random() * (max - min) + min);
@@ -959,5 +1047,7 @@ var GameState;
     GameState[GameState["Main"] = 1] = "Main";
     GameState[GameState["Play"] = 2] = "Play";
     GameState[GameState["GameOver"] = 3] = "GameOver";
+    GameState[GameState["GameBeaten"] = 4] = "GameBeaten";
+    GameState[GameState["Instructions"] = 5] = "Instructions";
 })(GameState || (GameState = {}));
 //# sourceMappingURL=app.js.map

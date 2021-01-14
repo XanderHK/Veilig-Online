@@ -33,7 +33,7 @@
                     { "xStart": 1250, "xEnd": 1300, "yStart": 650, "yEnd": 550 },
                     { "xStart": 1300, "xEnd": 1300, "yStart": 650, "yEnd": 550 }
                 ],
-                "questions" : [{"answer" : "blub", "question" : "bloop"}, {"answer" : "bloop", "question" : "blub"}],
+                "questions" : [{"answer" : "NEE", "question" : "Je wordt op social media toegevoegd door een onbekend iemand. Voeg je diegene toe?"  }, {"answer" : "JA", "question" : "blub"}],
                 "background" : "lava",
                 "tile" : "lavatile",
                 "spikes": [{ "xStart": 0, "xEnd": 1950, "yStart": 900, "yEnd": 1050 }]

@@ -24,11 +24,11 @@ class Game {
     private keyListener: KeyboardListener;
 
     private LevelViews: LevelView[] = [];
-
     private menuView: MenuView;
 
     private lostText: TextString;
     private loadText: TextString;
+    private finishedText: TextString;
 
     private fps: number = 0;
     private passedFrames: number = 0;
@@ -46,9 +46,11 @@ class Game {
         this.initializeAssets();
         this.loadText = new TextString(this.canvas.width / 2, this.canvas.height / 2, "Loading...");
         this.lostText = new TextString(this.canvas.width / 2, this.canvas.height / 2, "Jij hebt verloren, druk op R om te herstarten.");
+        this.finishedText = new TextString(this.canvas.width / 2, this.canvas.height / 2, "Je hebt het hele spel uitgespeeld, gefeliciteerd!")
         // Initial call to the loop
         this.step();
     }
+
 
     private isLoading() {
         return this.LevelViews.length !== Game.AMOUNT_OF_LEVELS
@@ -61,7 +63,7 @@ class Game {
         [1, 2, 3].forEach(async (n) => {
             const promise = await fetch(`./assets/json/level${n}.json`)
             const response = await promise.json();
-            response["water"] = [{ xStart: 0, xEnd: this.canvas.width, yStart: this.canvas.height - this.repo.getImage("water").height, yEnd: 1050 }];
+            response["water"] = [{ xStart: 0, xEnd: window.innerWidth, yStart: window.innerHeight - this.repo.getImage("water").height, yEnd: 1050 }];
             this.LevelViews.push(new LevelView(response as Config, this.ctx, this.repo, this.canvas.width, this.canvas.height));
         })
     }
@@ -80,9 +82,9 @@ class Game {
             "coin.png",
             "info.png",
             "enemy.png",
-            "winter.png",
-            "lava.jpg",
-            "Forest.jpg",
+            "winter.png |",
+            "lava.jpg |",
+            "Forest.jpg |",
             "wintertile.png",
             "lavatile.png",
             "tile.png",
@@ -99,8 +101,8 @@ class Game {
         this.canvas = canvas as HTMLCanvasElement;
         this.ctx = this.canvas.getContext("2d");
         // Resize the canvas so it looks more like a Runner game
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
+        this.canvas.width = window.innerWidth
+        this.canvas.height = window.innerHeight
     }
 
     private getAllScore() {
@@ -137,11 +139,16 @@ class Game {
      */
     private mainState() {
         this.getAllScore();
+        this.beatTheGame();
         this.menuView.frames = this.passedFrames;
         // Overwrites the repoKeys containing the paths to the actual keys
         this.repoKeys = this.repoKeys.map((path) => path.split("/").pop().split(".").shift());
         // Draws the menu
         this.menuView.drawMenu();
+
+        if (this.gamestate === GameState.Main && this.keyListener.isKeyDown(KeyboardListener.KEY_I)) {
+            this.gamestate = GameState.Instructions;
+        }
 
         const levelInteracted = this.menuView.interactsWithLevel();
         if (levelInteracted[0]) {
@@ -155,6 +162,9 @@ class Game {
     */
     private playState() {
         const currentLevel = this.LevelViews[this.currentLevelIndex];
+        if (currentLevel.isComplete()) {
+            this.gamestate = GameState.Main;
+        }
         if (currentLevel.lives !== 0) {
             currentLevel.frames = this.passedFrames;
             currentLevel.drawLevel();
@@ -175,15 +185,32 @@ class Game {
         }
     }
 
+    private beatTheGame() {
+        if (this.LevelViews.every((level: LevelView) => level.isComplete() === true)) {
+            this.gamestate = GameState.GameBeaten
+        }
+    }
 
-    /**
-     * This MUST be an arrow method in order to keep the `this` variable
-     * working correctly. It will be overwritten by another object otherwise
-     * caused by javascript scoping behaviour.
-     */
-    step = () => {
-        // Clears the canvas
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    private winState() {
+        this.finishedText.drawText(this.ctx);
+        this.restart()
+    }
+
+    private instructionState() {
+        if (this.keyListener.isKeyDown(KeyboardListener.KEY_ESCAPE)) {
+            this.gamestate = GameState.Main
+        }
+        //this.instructionsView.drawInstructions(this.ctx);
+    }
+
+    private restart() {
+        if (this.gamestate === GameState.GameBeaten && this.keyListener.isKeyDown(KeyboardListener.KEY_R)) {
+            location.reload();
+        }
+    }
+
+
+    private calculateFps() {
         const now = Date.now();
         if (now - this.last >= 1000 && this.fps === 0) {
             this.last = now;
@@ -194,6 +221,17 @@ class Game {
         if (this.fps === 0) {
             this.ticks++;
         }
+    }
+
+    /**
+     * This MUST be an arrow method in order to keep the `this` variable
+     * working correctly. It will be overwritten by another object otherwise
+     * caused by javascript scoping behaviour.
+     */
+    step = () => {
+        // Clears the canvas
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.calculateFps();
 
         switch (this.gamestate) {
             case GameState.Main:
@@ -208,6 +246,14 @@ class Game {
                 this.overState();
                 break;
 
+            case GameState.GameBeaten:
+                this.winState();
+                break;
+
+            case GameState.Instructions:
+                this.instructionState();
+                break;
+
             default:
                 this.loader();
         }
@@ -215,5 +261,4 @@ class Game {
         this.passedFrames++;
         requestAnimationFrame(this.step);
     }
-
 }

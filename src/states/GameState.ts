@@ -2,5 +2,7 @@ enum GameState {
     Load,
     Main,
     Play,
-    GameOver
+    GameOver,
+    GameBeaten,
+    Instructions
 }

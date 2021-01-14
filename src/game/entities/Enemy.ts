@@ -15,6 +15,15 @@ class Enemy extends GameEntity {
         return this.img;
     }
 
+    public get question(): string {
+        return this._question;
+    }
+
+
+    public get answer(): string {
+        return this._answer;
+    }
+
     public draw(ctx: CanvasRenderingContext2D) {
         ctx.drawImage(this.img, this.xPos, this.yPos)
     }
