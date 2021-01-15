@@ -13,7 +13,6 @@ abstract class MenuLogic extends Logic {
     protected player: Player;
     protected menuItems: MenuItem[] = [];
     protected speakers: Speaker[] = [];
-
     protected audio: boolean = true;
     protected _totalScore: number = 0;
 
@@ -35,12 +34,6 @@ abstract class MenuLogic extends Logic {
         const playerSprites: HTMLImageElement[] = Player.PLAYER_SPRITES.map((key: string) => this.repo.getImage(key))
         this.player = new Player(this.width / 3, 0, 0, 0, playerSprites);
     }
-
-
-    public set totalScore(score: number) {
-        this._totalScore = score;
-    }
-
 
     /**
      * Method for creating all the sprites that will be used by this class
@@ -103,22 +96,6 @@ abstract class MenuLogic extends Logic {
         }
     }
 
-    /**
-   * Method that checks if a the player object is standing on a menu item and returns the menu item
-   */
-    public interactsWithLevel() {
-        let returnValue: any[] = [false, null];
-        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_ENTER)) {
-            this.menuItems.forEach((menuItem, i) => {
-                const currentPlayerSprite = this.repo.getImage(`main_char_${this.currentPlayerImgIndex.state + 1}`);
-                const playerPos = this.player.xPos + currentPlayerSprite.width
-                if (playerPos >= menuItem.xPos && playerPos <= menuItem.xPos + this.repo.getImage("level1").width) {
-                    returnValue = [true, i];
-                }
-            })
-        }
-        return returnValue;
-    }
 
     /**
      * changes the state of the player sprite every 250ms from 0-1 which creates the idle animation on the menu for the player
@@ -164,6 +141,31 @@ abstract class MenuLogic extends Logic {
                 this.audio = (this.audio === true ? false : true);
             }
         });
+    }
+
+
+    /**
+   * Method that checks if a the player object is standing on a menu item and returns the menu item
+   */
+    public interactsWithLevel() {
+        let returnValue: any[] = [false, null];
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_ENTER)) {
+            this.menuItems.forEach((menuItem, i) => {
+                const currentPlayerSprite = this.repo.getImage(`main_char_${this.currentPlayerImgIndex.state + 1}`);
+                const playerPos = this.player.xPos + currentPlayerSprite.width
+                if (playerPos >= menuItem.xPos && playerPos <= menuItem.xPos + this.repo.getImage("level1").width) {
+                    returnValue = [true, i];
+                }
+            })
+        }
+        return returnValue;
+    }
+
+    /**
+  * Sets the total score
+  */
+    public set totalScore(score: number) {
+        this._totalScore = score;
     }
 
 

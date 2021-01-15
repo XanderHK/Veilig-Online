@@ -21,10 +21,16 @@ abstract class Logic {
         this._cy = this.height / 2;
     }
 
+    /**
+     * Gets the central x
+     */
     public get cx(): number {
         return this._cx;
     }
 
+    /**
+     * Gets the central y
+     */
     public get cy(): number {
         return this._cy;
     }

@@ -33,7 +33,7 @@ class MenuView extends MenuLogic {
      * Draws the instructions uderneath of the earth
      */
     private drawInstructions() {
-        const instructionText: string = "PRESS ENTER TO START LEVEL"
+        const instructionText: string = "DRUK OP ENTER OM TE STARTEN | DRUK OP I VOOR DE GEBRUIKSHANDLEIDING"
         const instructions: TextString = new TextString(this.width / 2, this.height / 2 + this.repo.getImage("earth").height, instructionText);
         instructions.fillStyle = "white";
         instructions.drawText(this.ctx);

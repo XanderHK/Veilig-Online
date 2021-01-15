@@ -2,6 +2,9 @@ class Player extends GameEntity {
 
     public static readonly PLAYER_SPRITES = [`main_char_1.png`, `main_char_2.png`, `run-left1.png`, `run-left2.png`, `run-left3.png`, `run-left4.png`, `run-left5.png`, `run-left6.png`,
         `run-right1.png`, `run-right2.png`, `run-right3.png`, `run-right4.png`, `run-right5.png`, `run-right6.png`];
+    public static readonly yVel: 10;
+    public static readonly xVel: 8;
+
     private images: HTMLImageElement[];
 
 

@@ -1,9 +1,72 @@
 {
                 "name": "level2",
                 "platforms": [
-                    { "xStart": 0, "xEnd": 200, "yStart": 700, "yEnd": 750 }
+                    { "xStart": 0, "xEnd": 200, "yStart": 750, "yEnd": 800 },
+
+                    { "xStart":250 , "xEnd": 350, "yStart": 700, "yEnd": 750 },
+
+                    { "xStart":500 , "xEnd": 600, "yStart": 700, "yEnd": 750 },
+
+                    { "xStart":700 , "xEnd": 750, "yStart": 750, "yEnd": 800},
+
+                    { "xStart":900 , "xEnd": 950, "yStart": 800, "yEnd": 850},
+                    { "xStart":950 , "xEnd": 1000, "yStart": 800, "yEnd": 850},
+
+                    { "xStart":1100 , "xEnd": 1150, "yStart": 750, "yEnd": 800},
+
+                    { "xStart":1100 , "xEnd": 1150, "yStart": 750, "yEnd": 800},
+                    { "xStart":1250 , "xEnd": 1300, "yStart": 700, "yEnd": 750},
+                    { "xStart":1300 , "xEnd": 1350, "yStart": 750, "yEnd": 800},
+                    { "xStart":1350 , "xEnd": 1400, "yStart": 800, "yEnd": 850},
+
+                    { "xStart":1400 , "xEnd": 1700, "yStart": 850, "yEnd": 900},
+
+                    { "xStart":1250 , "xEnd": 1300, "yStart": 650, "yEnd": 700},
+                    { "xStart":1350 , "xEnd": 1400, "yStart": 600, "yEnd": 650},
+                    { "xStart":1500 , "xEnd": 1550, "yStart": 600, "yEnd": 650},
+                    { "xStart":1550 , "xEnd": 1600, "yStart": 650, "yEnd": 700},
+                    { "xStart":1700 , "xEnd": 1750, "yStart": 650, "yEnd": 700},
+
+                    { "xStart":1850 , "xEnd": 1900, "yStart": 650, "yEnd": 700},
+                    { "xStart":1850 , "xEnd": 1900, "yStart": 450, "yEnd": 500},
+                    { "xStart":1850 , "xEnd": 1900, "yStart": 500, "yEnd": 550}, 
+                    { "xStart":1850 , "xEnd": 1900, "yStart": 550, "yEnd": 600},
+                    { "xStart":1850 , "xEnd": 1900, "yStart": 600, "yEnd": 650},
+
+                    { "xStart":1700 , "xEnd": 1750, "yStart": 450, "yEnd": 500},
+                    { "xStart":1550 , "xEnd": 1600, "yStart": 450, "yEnd": 500},
+                    { "xStart":1400 , "xEnd": 1450, "yStart": 450, "yEnd": 500},
+                    { "xStart":1200 , "xEnd": 1250, "yStart": 450, "yEnd": 500},
+                    { "xStart":1100 , "xEnd": 1150, "yStart": 400, "yEnd": 450},
+
+                    { "xStart":550 , "xEnd": 600, "yStart": 500, "yEnd": 550},
+                    { "xStart":500 , "xEnd": 550, "yStart": 500, "yEnd": 550},
+                    { "xStart":600 , "xEnd": 650, "yStart": 500, "yEnd": 550},
+
+                    { "xStart":400 , "xEnd": 450, "yStart": 450, "yEnd": 500},
+                    { "xStart":400 , "xEnd": 450, "yStart": 400, "yEnd": 450},
+
+                    { "xStart":350 , "xEnd": 400, "yStart": 500, "yEnd": 550},
+
+                    { "xStart":0 , "xEnd": 200, "yStart": 500, "yEnd": 550},
+
+                    { "xStart":500 , "xEnd": 550, "yStart": 350, "yEnd": 400},
+                    { "xStart":600 , "xEnd": 650, "yStart": 300, "yEnd": 350},
+                    { "xStart":700 , "xEnd": 750, "yStart": 250, "yEnd": 300},
+                    { "xStart":800 , "xEnd": 850, "yStart": 200, "yEnd": 250},
+                    { "xStart":950 , "xEnd": 1000, "yStart": 200, "yEnd": 250},
+
+                    { "xStart":1100 , "xEnd": 1250, "yStart": 250, "yEnd": 300},
+                    { "xStart":1250 , "xEnd": 1950, "yStart": 300, "yEnd": 350},
+
+                    { "xStart":1150 , "xEnd": 1200, "yStart": 200, "yEnd": 250},
+                    { "xStart":1300 , "xEnd": 1350, "yStart": 150, "yEnd": 200},
+                    { "xStart":1450 , "xEnd": 1500, "yStart": 100, "yEnd": 200},
+                    { "xStart":1650 , "xEnd": 1700, "yStart": 100, "yEnd": 200},
+                    { "xStart":1800 , "xEnd": 1950, "yStart": 100, "yEnd": 150}
+               
                 ],
-                       "questions" : [{"answer" : "NEE", "question" : "Je wordt op social media toegevoegd door een onbekend iemand. Voeg je diegene toe?"  }, {"answer" : "JA", "question" : "blub"}],
+                "questions" : [{"answer" : "NEE", "question" : "bloop"}, {"answer" : "JA", "question" : "blub"}],
                 "background" : "winter",
                 "tile" : "wintertile",
                 "spikes": [{ "xStart": 0, "xEnd": 1950, "yStart": 900, "yEnd": 1050 }]

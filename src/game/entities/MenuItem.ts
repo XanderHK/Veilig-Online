@@ -7,14 +7,17 @@ class MenuItem extends GameEntity {
         this.image = img;
     }
 
+    /**
+    * Gets the sprite of the object
+    */
     public get sprite(): HTMLImageElement {
         return this.image;
     }
 
     /**
-     * 
-     * @param ctx 
-     */
+    * Draws the object
+    * @param {CanvasRenderingContext2D} ctx
+    */
     public draw(ctx: CanvasRenderingContext2D) {
         ctx.drawImage(this.image, this.xPos, this.yPos)
     }

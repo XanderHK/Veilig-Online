@@ -10,10 +10,17 @@ class Water extends GameEntity {
         this.img = sprite;
     }
 
+    /**
+    * Gets the sprite of the object
+    */
     public get sprite(): HTMLImageElement {
         return this.img;
     }
 
+    /**
+    * Draws the object
+    * @param {CanvasRenderingContext2D} ctx
+    */
     public draw(ctx: CanvasRenderingContext2D) {
         ctx.drawImage(this.img, this.xPos, this.yPos)
     }

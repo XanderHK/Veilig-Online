@@ -45,10 +45,16 @@ class LevelView extends LevelLogic {
         this.ctx.drawImage(this.backgroundImage, (this.width / 2) - (this.backgroundImage.width / 2), (this.height / 2) - (this.backgroundImage.height / 2), this.backgroundImage.width, this.backgroundImage.height);
     }
 
+    /**
+     * Draws the info objects
+     */
     private drawInfo() {
         this.drawEntities(this.infoObjects);
     }
 
+    /**
+     * Draws the score text
+     */
     private drawScore() {
         this.scoreText.x
         this.scoreText.fillStyle = "white";
@@ -56,24 +62,59 @@ class LevelView extends LevelLogic {
         this.scoreText.drawText(this.ctx);
     }
 
+    /**
+     * Draws the life text
+     */
     private drawLives() {
         this.lifeText.fillStyle = "white";
         this.lifeText.text = "Lives " + String(this.lives);
         this.lifeText.drawText(this.ctx);
     }
 
+    /**
+     * Draws all the coins
+     */
     private drawCoins() {
         this.drawEntities(this.coins)
     }
 
+    /**
+     * Draws all the water
+     */
     private drawWater() {
         this.drawEntities(this.water)
     }
 
+    /**
+     * Draws all the enemies
+     */
     private drawEnemies() {
         this.drawEntities(this.enemies)
     }
 
+    /**
+     * Method that draws all the blocks
+     */
+    private drawBlocks() {
+        this.drawEntities(this.blocks)
+    }
+
+    private drawEntities(entities: GameEntity[]) {
+        entities.forEach((entity: GameEntity) => {
+            entity.draw(this.ctx)
+        })
+    }
+
+    /**
+     * Method that draws the player on the level view
+     */
+    private drawPlayer() {
+        this.player.draw(this.ctx, this.playerImageIndex)
+    }
+
+    /**
+     * Method that draws the dialogue screen for the infopoints
+     */
     private drawInfoScreen() {
         const result = this.interactsWithInfo();
         if (this.window && result !== undefined) {
@@ -96,6 +137,9 @@ class LevelView extends LevelLogic {
         }
     }
 
+    /**
+     * Method that draws the dialogue screen for the enemy
+     */
     private drawEnemyScreen() {
         const result = this.interactsWithEnemy();
         if (this.window && result !== undefined) {
@@ -118,24 +162,4 @@ class LevelView extends LevelLogic {
         }
     }
 
-
-    /**
-     * Method that draws all the blocks
-     */
-    private drawBlocks() {
-        this.drawEntities(this.blocks)
-    }
-
-    private drawEntities(entities: GameEntity[]) {
-        entities.forEach((entity: GameEntity) => {
-            entity.draw(this.ctx)
-        })
-    }
-
-    /**
-     * Method that draws the player on the level view
-     */
-    private drawPlayer() {
-        this.player.draw(this.ctx, this.playerImageIndex)
-    }
 }

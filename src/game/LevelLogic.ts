@@ -40,22 +40,24 @@ abstract class LevelLogic extends Logic {
         this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 8, 10, playerSprites);
     }
 
+    /**
+     * Method that bundles method together
+     */
     private initializeEntities() {
-        this.initializePlatforms(this.entries);
+        this.initializePlatforms();
         this.initializeCoins();
-        this.initializeWater(this.entries);
-        this.initializeInfo(this.entries);
-        this.initializeEnemies(this.entries);
+        this.initializeWater();
+        this.initializeInfo();
+        this.initializeEnemies();
     }
 
     /**
      * Method that creates all the blocks
-     * @param {[string, any][]} entries 
      */
-    private initializePlatforms(entries: [string, any][]) {
+    private initializePlatforms() {
         const tileSprite = this.repo.getImage(this.tileKey);
-        this._name = String(entries.find((entry) => entry[0] === "name")[1]);
-        Object.values(entries.find(entry => entry[0] === "platforms")[1]).forEach((settings: { xStart: number; xEnd: number; yStart: number; yEnd: number; }, i: number) => {
+        this._name = String(this.entries.find((entry) => entry[0] === "name")[1]);
+        Object.values(this.entries.find(entry => entry[0] === "platforms")[1]).forEach((settings: { xStart: number; xEnd: number; yStart: number; yEnd: number; }, i: number) => {
             const amountOfTiles = Math.floor((settings.xEnd - settings.xStart) / tileSprite.width);
             for (let i = 0; i < amountOfTiles; i++) {
                 this.blocks.push(new Block(settings.xStart, settings.yStart, tileSprite))
@@ -64,9 +66,12 @@ abstract class LevelLogic extends Logic {
         });
     }
 
-    private initializeWater(entires: [string, any][]) {
+    /**
+     * Method that initializes all the water entities
+     */
+    private initializeWater() {
         const waterSprite = this.repo.getImage("water");
-        Object.values(entires.find(entry => entry[0] === "water")[1]).forEach((settings: { xStart: number; xEnd: number; yStart: number; yEnd: number; }) => {
+        Object.values(this.entries.find(entry => entry[0] === "water")[1]).forEach((settings: { xStart: number; xEnd: number; yStart: number; yEnd: number; }) => {
             const amountOfWaterTiles = Math.ceil((settings.xEnd - settings.xStart) / waterSprite.width);
             for (let i = 0; i < amountOfWaterTiles; i++) {
                 this.water.push(new Water(settings.xStart, settings.yStart, waterSprite));
@@ -75,6 +80,9 @@ abstract class LevelLogic extends Logic {
         })
     }
 
+    /**
+     * Method that initializes all the coins
+     */
     private initializeCoins() {
         const coinSprite = this.repo.getImage("coin");
         this.blocks.forEach((possibleSpawnBlock: Block) => {
@@ -87,11 +95,10 @@ abstract class LevelLogic extends Logic {
 
     /**
  * Initializes the enemy objects that should be drawn on the canvas
- * @param {[string, any][]} entries
  */
-    private initializeEnemies(entries: [string, any][]) {
+    private initializeEnemies() {
         const enemySprite: HTMLImageElement = this.repo.getImage("enemy");
-        const info: { answer: string, question: string }[] = entries.find(entry => entry[0] === "questions")[1]
+        const info: { answer: string, question: string }[] = this.entries.find(entry => entry[0] === "questions")[1]
         for (let i = 0; i < Game.AMOUNT_OF_ENEMIES; i++) {
             const randomIndex: number = Math.floor(Math.random() * this.blocks.length);
             const randomSpawn: Block = this.blocks[randomIndex];
@@ -102,11 +109,10 @@ abstract class LevelLogic extends Logic {
 
     /**
  * Initializes the info objects that should be drawn on the canvas
- * * @param {[string, any][]} entries
  */
-    private initializeInfo(entries: [string, any][]) {
+    private initializeInfo() {
         const infoSprite: HTMLImageElement = this.repo.getImage("info");
-        const info: { answer: string, question: string }[] = entries.find(entry => entry[0] === "questions")[1]
+        const info: { answer: string, question: string }[] = this.entries.find(entry => entry[0] === "questions")[1]
         const tempInfoArr: InfoObject[] = [];
         for (let i = 0; i < Game.AMOUNT_OF_INFO; i++) {
             const randomIndex: number = Math.floor(Math.random() * this.blocks.length);
@@ -115,13 +121,10 @@ abstract class LevelLogic extends Logic {
             tempInfoArr.push(newInfoObj);
         }
         const retry: boolean = tempInfoArr.map(temp => {
-            if (this.fullCollision(this.blocks, temp)[0]) {
-                return true;
-            }
-            return false;
+            return this.fullCollision(this.blocks, temp)[0]
         }).find(e => e === true)
         if (retry) {
-            this.initializeInfo(entries)
+            this.initializeInfo()
         } else {
             tempInfoArr.forEach(infoObj => this.infoObjects.push(infoObj))
         }
@@ -144,6 +147,9 @@ abstract class LevelLogic extends Logic {
         return result === undefined ? [false, null] : result
     }
 
+    /**
+     * Method that checks if the player collides with the coin
+     */
     private collidesWithCoin() {
         const coinCollisionResult = this.fullCollision(this.coins, this.player);
         if (coinCollisionResult[0]) {
@@ -287,6 +293,9 @@ abstract class LevelLogic extends Logic {
         }
     }
 
+    /**
+     * Method that gives the object info when interacting with the info object
+     */
     protected interactsWithInfo(): InfoObject {
         const result = this.fullCollision(this.infoObjects, this.player);
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_ENTER) && result[0]) {
@@ -300,6 +309,9 @@ abstract class LevelLogic extends Logic {
 
     }
 
+    /**
+     * Method that gives the object info when interacting with the enemy object
+     */
     protected interactsWithEnemy(): Enemy {
         const result = this.fullCollision(this.enemies, this.player);
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_ENTER) && result[0]) {
@@ -313,6 +325,10 @@ abstract class LevelLogic extends Logic {
 
     }
 
+    /**
+     * Method that either removes a live or the enemy depending if the answer is correct or not
+     * @param {Enemy} enemy 
+     */
     protected answerEnemy(enemy: Enemy) {
         const a: boolean = this.keyboardListener.isKeyDown(KeyboardListener.KEY_A);
         const b: boolean = this.keyboardListener.isKeyDown(KeyboardListener.KEY_B);
@@ -330,11 +346,6 @@ abstract class LevelLogic extends Logic {
             }
         }
     }
-
-    public isComplete() {
-        return this.enemies.length === 0
-    }
-
 
     /**
      * returns the current image index from Player.SPRITES
@@ -359,11 +370,23 @@ abstract class LevelLogic extends Logic {
         this.makePlayerJump();
     }
 
+    /**
+     * Method that returns true if you have no more attempts
+     */
+    public isComplete() {
+        return this.enemies.length === 0
+    }
 
+    /**
+     * Getter for the score
+     */
     public get score(): number {
         return this._score;
     }
 
+    /**
+     * Getter for the lives
+     */
     public get lives(): number {
         return this._lives;
     }
