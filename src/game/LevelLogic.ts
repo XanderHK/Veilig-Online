@@ -59,8 +59,12 @@ abstract class LevelLogic extends Logic {
         const tileSprite = this.repo.getImage(this.tileKey);
         this._name = String(this.entries.find((entry) => entry[0] === "name")[1]);
         Object.values(this.entries.find(entry => entry[0] === "platforms")[1]).forEach((settings: { xStart: number; xEnd: number; yStart: number; yEnd: number; }, i: number) => {
+
             settings.yStart = Calculate.calculateY(settings.yStart);
-            const amountOfTiles = Math.floor((settings.xEnd - settings.xStart) / tileSprite.width);
+            settings.xStart = Calculate.calculateX(settings.xStart)
+            settings.xEnd = Calculate.calculateX(settings.xEnd)
+
+            const amountOfTiles = Math.round((settings.xEnd - settings.xStart) / tileSprite.width);
             for (let i = 0; i < amountOfTiles; i++) {
                 this.blocks.push(new Block(settings.xStart, settings.yStart, tileSprite))
                 settings.xStart += tileSprite.width;

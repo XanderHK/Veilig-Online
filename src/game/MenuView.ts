@@ -71,8 +71,8 @@ class MenuView extends MenuLogic {
    */
     private drawBackGround() {
         const background = this.repo.getImage("earth");
-        background.width = 300;
-        background.height = 300;
+        background.width = Calculate.calculateX(300)
+        background.height = Calculate.calculateY(300)
         this.ctx.drawImage(this.changeBackground(), 0, 0, this.width, this.height)
         this.ctx.drawImage(background, (this.width / 2) - (background.width / 2), (this.height / 2) - (background.height / 2), background.width, background.height);
     }

@@ -22,6 +22,6 @@ class Speaker extends GameEntity {
      * @param {CanvasRenderingContext2D} ctx
      */
     public draw(ctx: CanvasRenderingContext2D) {
-        ctx.drawImage(this.image, this.xPos, this.yPos);
+        ctx.drawImage(this.image, this.xPos, this.yPos, this.image.width, this.image.height);
     }
 }

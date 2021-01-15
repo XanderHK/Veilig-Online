@@ -65,6 +65,6 @@ class Player extends GameEntity {
      * @param {number} state 
      */
     public draw(ctx: CanvasRenderingContext2D, state: number) {
-        ctx.drawImage(this.images[state], this.xPos, this.yPos);
+        ctx.drawImage(this.images[state], this.xPos, this.yPos, this.images[state].width, this.images[state].height);
     }
 }

@@ -31,6 +31,6 @@ class InfoObject extends GameEntity {
     * @param {CanvasRenderingContext2D} ctx
     */
     public draw(ctx: CanvasRenderingContext2D) {
-        ctx.drawImage(this.img, this.xPos, this.yPos)
+        ctx.drawImage(this.img, this.xPos, this.yPos, this.img.width, this.img.height);
     }
 }

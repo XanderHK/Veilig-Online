@@ -89,9 +89,9 @@ abstract class Game {
             "coin.png",
             "info.png",
             "enemy.png",
-            "winter.png |",
-            "lava.jpg |",
-            "Forest.jpg |",
+            "winter.png",
+            "lava.jpg",
+            "Forest.jpg",
             "wintertile.png",
             "lavatile.png",
             "tile.png",
@@ -217,7 +217,6 @@ abstract class Game {
          Laat het poppetje springen door op pijl omhoog toets te drukken.`;
         const textArr = text.split("\n");
         const startHeight = (this.canvas.height / 2) - ((textArr.length / 2) * spaceBetween)
-        console.log(startHeight);
         textArr.reduce((a: number, r: string) => {
             textStringArr.push(new TextString(this.canvas.width / 2, a, r));
             return a += spaceBetween;
