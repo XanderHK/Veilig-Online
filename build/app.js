@@ -285,6 +285,7 @@ class LevelLogic extends Logic {
         const tileSprite = this.repo.getImage(this.tileKey);
         this._name = String(this.entries.find((entry) => entry[0] === "name")[1]);
         Object.values(this.entries.find(entry => entry[0] === "platforms")[1]).forEach((settings, i) => {
+            settings.yStart = Calculate.calculateY(settings.yStart);
             const amountOfTiles = Math.floor((settings.xEnd - settings.xStart) / tileSprite.width);
             for (let i = 0; i < amountOfTiles; i++) {
                 this.blocks.push(new Block(settings.xStart, settings.yStart, tileSprite));
@@ -964,6 +965,16 @@ class Calculate {
     }
     static calculateHeightMultiplier() {
         return (1 - Math.abs((window.innerHeight - Calculate.BASELINE_HEIGHT) / Calculate.BASELINE_HEIGHT));
+    }
+    static calculateY(y) {
+        const percentage = y / Calculate.BASELINE_HEIGHT * 100;
+        const newYPos = window.innerHeight / 100 * percentage;
+        return newYPos;
+    }
+    static calculateX(x) {
+        const percentage = x / Calculate.BASELINE_WIDTH * 100;
+        const newXPos = window.innerWidth / 100 * percentage;
+        return newXPos;
     }
 }
 Calculate.BASELINE_WIDTH = 1920;
