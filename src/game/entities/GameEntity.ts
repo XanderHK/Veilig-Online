@@ -24,8 +24,9 @@ abstract class GameEntity {
      */
     private calculateVelocity(velocityX: number, velocityY: number) {
         const diff = window.fps / Game.BASELINE_FPS;
-        const xVel = Math.round(velocityX / diff);
-        const yVel = Math.round(velocityY / diff);
+        const xVel = Calculate.calculateX(Math.round(velocityX / diff));
+        const yVel = Calculate.calculateY(Math.round(velocityY / diff));
+        console.log(xVel);
         return [xVel, yVel]
     }
 

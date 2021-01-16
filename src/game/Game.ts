@@ -1,7 +1,7 @@
 /**
  * Main class of this Game.
  */
-class Game {
+abstract class Game {
 
     // Class constants
     public static readonly IMG_PATH = "./assets/img/";
@@ -17,19 +17,24 @@ class Game {
     // The canvas context
     private ctx: CanvasRenderingContext2D;
 
+    // State of the game
     private gamestate: GameState = GameState.Load;
 
+    // All helper related properties
     private repo: ImageLoader;
     private repoKeys: string[];
     private keyListener: KeyboardListener;
 
+    // All views
     private LevelViews: LevelView[] = [];
     private menuView: MenuView;
-
+    // All textstrings
     private lostText: TextString;
     private loadText: TextString;
     private finishedText: TextString;
+    private instructionTexts: TextString[] = [];
 
+    // All number related properties
     private fps: number = 0;
     private passedFrames: number = 0;
     private ticks: number = 0;
@@ -46,12 +51,15 @@ class Game {
         this.initializeAssets();
         this.loadText = new TextString(this.canvas.width / 2, this.canvas.height / 2, "Loading...");
         this.lostText = new TextString(this.canvas.width / 2, this.canvas.height / 2, "Jij hebt verloren, druk op R om te herstarten.");
-        this.finishedText = new TextString(this.canvas.width / 2, this.canvas.height / 2, "Je hebt het hele spel uitgespeeld, gefeliciteerd!")
+        this.finishedText = new TextString(this.canvas.width / 2, this.canvas.height / 2, "Je hebt het hele spel uitgespeeld, gefeliciteerd! Druk op R om het spel opnieuw te starten.")
+        this.instructionTexts = this.initializeInstructionText();
         // Initial call to the loop
         this.step();
     }
 
-
+    /**
+     * Method that checks if the levels have finished loading in
+     */
     private isLoading() {
         return this.LevelViews.length !== Game.AMOUNT_OF_LEVELS
     }
@@ -77,14 +85,13 @@ class Game {
             "level2.png",
             "level3.png",
             "tile.png",
-            "Background_level1.png",
             "water.png",
             "coin.png",
             "info.png",
             "enemy.png",
-            "winter.png |",
-            "lava.jpg |",
-            "Forest.jpg |",
+            "winter.png",
+            "lava.jpg",
+            "Forest.jpg",
             "wintertile.png",
             "lavatile.png",
             "tile.png",
@@ -196,11 +203,32 @@ class Game {
         this.restart()
     }
 
+    private initializeInstructionText(): TextString[] {
+        const textStringArr: TextString[] = [];
+        const spaceBetween = 50;
+        const text: string = `Druk op enter om te starten.
+         Druk op I om het informatie scherm te openen.
+         Druk op ESC om uit het informatie scherm te gaan.
+         Druk op <- of -> om van level te veranderen in het menu.
+         Druk op enter bij een informatie punt of vijand om het dialoogvenster te openen.
+         Druk op Q om het dialoogvenster te sluiten.
+         Beantwoordt de vragen van de vijand door op A of B te drukken.
+         Beweeg het poppetje door middel van de <- of -> toets.
+         Laat het poppetje springen door op pijl omhoog toets te drukken.`;
+        const textArr = text.split("\n");
+        const startHeight = (this.canvas.height / 2) - ((textArr.length / 2) * spaceBetween)
+        textArr.reduce((a: number, r: string) => {
+            textStringArr.push(new TextString(this.canvas.width / 2, a, r));
+            return a += spaceBetween;
+        }, startHeight)
+        return textStringArr;
+    }
+
     private instructionState() {
         if (this.keyListener.isKeyDown(KeyboardListener.KEY_ESCAPE)) {
             this.gamestate = GameState.Main
         }
-        //this.instructionsView.drawInstructions(this.ctx);
+        this.instructionTexts.forEach((text: TextString) => text.drawText(this.ctx))
     }
 
     private restart() {

@@ -23,8 +23,8 @@ class ImageLoader {
         const key = (path.includes("|") ? path.split(" |").shift() : path).split("/").pop().split(".").shift();
         image.addEventListener("load", () => {
             if (!path.includes("|") && Calculate.BASELINE_WIDTH !== window.innerWidth && Calculate.BASELINE_HEIGHT !== window.innerHeight) {
-                image.width = image.width * Calculate.calculateWidthMultiplier();
-                image.height = image.height * Calculate.calculateHeightMultiplier();
+                image.width = Calculate.calculateX(image.width);
+                image.height = Calculate.calculateY(image.height);
             }
             this.images.push({ key: key, image: image });
             this.loadingAssets.splice(this.loadingAssets.indexOf(key), 1)

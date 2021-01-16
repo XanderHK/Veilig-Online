@@ -10,15 +10,18 @@ class Speaker extends GameEntity {
         this.image = img;
     }
 
+    /**
+    * Gets the sprite of the object
+    */
     public get sprite() {
         return this.image;
     }
 
     /**
-     * 
-     * @param ctx 
+     * Draws the object
+     * @param {CanvasRenderingContext2D} ctx
      */
     public draw(ctx: CanvasRenderingContext2D) {
-        ctx.drawImage(this.image, this.xPos, this.yPos);
+        ctx.drawImage(this.image, this.xPos, this.yPos, this.image.width, this.image.height);
     }
 }

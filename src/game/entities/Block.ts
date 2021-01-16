@@ -8,17 +8,18 @@ class Block extends GameEntity {
     }
 
     /**
-     * 
+     * Gets the sprite of the object
      */
     public get sprite(): HTMLImageElement {
         return this.img;
     }
 
     /**
-     * 
-     * @param ctx 
+     * Draws the object
+     * @param {CanvasRenderingContext2D} ctx 
      */
     public draw(ctx: CanvasRenderingContext2D) {
-        ctx.drawImage(this.img, this.xPos, this.yPos);
+        ctx.drawImage(this.img, this.xPos, this.yPos, this.img.width, this.img.height);
+        ctx.drawImage(this.img, this.xPos, this.yPos, this.img.width, this.img.height);
     }
 }

@@ -11,6 +11,9 @@ class Enemy extends GameEntity {
         this._answer = answer;
     }
 
+    /**
+    * Gets the sprite of the object
+    */
     public get sprite(): HTMLImageElement {
         return this.img;
     }
@@ -24,7 +27,11 @@ class Enemy extends GameEntity {
         return this._answer;
     }
 
+    /**
+    * Draws the object
+    * @param {CanvasRenderingContext2D} ctx
+    */
     public draw(ctx: CanvasRenderingContext2D) {
-        ctx.drawImage(this.img, this.xPos, this.yPos)
+        ctx.drawImage(this.img, this.xPos, this.yPos, this.img.width, this.img.height);
     }
 }

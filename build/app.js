@@ -8,12 +8,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 window.addEventListener('load', () => {
-    const game = new Game(document.getElementById('canvas'));
+    const game = new GameView(document.getElementById('canvas'));
 });
 class Game {
     constructor(canvas) {
         this.gamestate = GameState.Load;
         this.LevelViews = [];
+        this.instructionTexts = [];
         this.fps = 0;
         this.passedFrames = 0;
         this.ticks = 0;
@@ -48,7 +49,8 @@ class Game {
         this.initializeAssets();
         this.loadText = new TextString(this.canvas.width / 2, this.canvas.height / 2, "Loading...");
         this.lostText = new TextString(this.canvas.width / 2, this.canvas.height / 2, "Jij hebt verloren, druk op R om te herstarten.");
-        this.finishedText = new TextString(this.canvas.width / 2, this.canvas.height / 2, "Je hebt het hele spel uitgespeeld, gefeliciteerd!");
+        this.finishedText = new TextString(this.canvas.width / 2, this.canvas.height / 2, "Je hebt het hele spel uitgespeeld, gefeliciteerd! Druk op R om het spel opnieuw te starten.");
+        this.instructionTexts = this.initializeInstructionText();
         this.step();
     }
     isLoading() {
@@ -69,14 +71,13 @@ class Game {
             "level2.png",
             "level3.png",
             "tile.png",
-            "Background_level1.png",
             "water.png",
             "coin.png",
             "info.png",
             "enemy.png",
-            "winter.png |",
-            "lava.jpg |",
-            "Forest.jpg |",
+            "winter.png",
+            "lava.jpg",
+            "Forest.jpg",
             "wintertile.png",
             "lavatile.png",
             "tile.png",
@@ -161,10 +162,31 @@ class Game {
         this.finishedText.drawText(this.ctx);
         this.restart();
     }
+    initializeInstructionText() {
+        const textStringArr = [];
+        const spaceBetween = 50;
+        const text = `Druk op enter om te starten.
+         Druk op I om het informatie scherm te openen.
+         Druk op ESC om uit het informatie scherm te gaan.
+         Druk op <- of -> om van level te veranderen in het menu.
+         Druk op enter bij een informatie punt of vijand om het dialoogvenster te openen.
+         Druk op Q om het dialoogvenster te sluiten.
+         Beantwoordt de vragen van de vijand door op A of B te drukken.
+         Beweeg het poppetje door middel van de <- of -> toets.
+         Laat het poppetje springen door op pijl omhoog toets te drukken.`;
+        const textArr = text.split("\n");
+        const startHeight = (this.canvas.height / 2) - ((textArr.length / 2) * spaceBetween);
+        textArr.reduce((a, r) => {
+            textStringArr.push(new TextString(this.canvas.width / 2, a, r));
+            return a += spaceBetween;
+        }, startHeight);
+        return textStringArr;
+    }
     instructionState() {
         if (this.keyListener.isKeyDown(KeyboardListener.KEY_ESCAPE)) {
             this.gamestate = GameState.Main;
         }
+        this.instructionTexts.forEach((text) => text.drawText(this.ctx));
     }
     restart() {
         if (this.gamestate === GameState.GameBeaten && this.keyListener.isKeyDown(KeyboardListener.KEY_R)) {
@@ -191,7 +213,7 @@ Game.AMOUNT_OF_INFO = 2;
 Game.AMOUNT_OF_LIVES = 3;
 Game.AMOUNT_OF_ENEMIES = 2;
 Game.BASELINE_FPS = 60;
-class GameView {
+class GameView extends Game {
 }
 class Logic {
     constructor(repo, width, height) {
@@ -252,26 +274,29 @@ class LevelLogic extends Logic {
         this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 8, 10, playerSprites);
     }
     initializeEntities() {
-        this.initializePlatforms(this.entries);
+        this.initializePlatforms();
         this.initializeCoins();
-        this.initializeWater(this.entries);
-        this.initializeInfo(this.entries);
-        this.initializeEnemies(this.entries);
+        this.initializeWater();
+        this.initializeInfo();
+        this.initializeEnemies();
     }
-    initializePlatforms(entries) {
+    initializePlatforms() {
         const tileSprite = this.repo.getImage(this.tileKey);
-        this._name = String(entries.find((entry) => entry[0] === "name")[1]);
-        Object.values(entries.find(entry => entry[0] === "platforms")[1]).forEach((settings, i) => {
-            const amountOfTiles = Math.floor((settings.xEnd - settings.xStart) / tileSprite.width);
+        this._name = String(this.entries.find((entry) => entry[0] === "name")[1]);
+        Object.values(this.entries.find(entry => entry[0] === "platforms")[1]).forEach((settings, i) => {
+            settings.yStart = Calculate.calculateY(settings.yStart);
+            settings.xStart = Calculate.calculateX(settings.xStart);
+            settings.xEnd = Calculate.calculateX(settings.xEnd);
+            const amountOfTiles = Math.round((settings.xEnd - settings.xStart) / tileSprite.width);
             for (let i = 0; i < amountOfTiles; i++) {
                 this.blocks.push(new Block(settings.xStart, settings.yStart, tileSprite));
                 settings.xStart += tileSprite.width;
             }
         });
     }
-    initializeWater(entires) {
+    initializeWater() {
         const waterSprite = this.repo.getImage("water");
-        Object.values(entires.find(entry => entry[0] === "water")[1]).forEach((settings) => {
+        Object.values(this.entries.find(entry => entry[0] === "water")[1]).forEach((settings) => {
             const amountOfWaterTiles = Math.ceil((settings.xEnd - settings.xStart) / waterSprite.width);
             for (let i = 0; i < amountOfWaterTiles; i++) {
                 this.water.push(new Water(settings.xStart, settings.yStart, waterSprite));
@@ -288,18 +313,18 @@ class LevelLogic extends Logic {
             }
         });
     }
-    initializeEnemies(entries) {
+    initializeEnemies() {
         const enemySprite = this.repo.getImage("enemy");
-        const info = entries.find(entry => entry[0] === "questions")[1];
+        const info = this.entries.find(entry => entry[0] === "questions")[1];
         for (let i = 0; i < Game.AMOUNT_OF_ENEMIES; i++) {
             const randomIndex = Math.floor(Math.random() * this.blocks.length);
             const randomSpawn = this.blocks[randomIndex];
             this.enemies.push(new Enemy(randomSpawn.xPos, randomSpawn.yPos - enemySprite.height, enemySprite, info[i].question, info[i].answer));
         }
     }
-    initializeInfo(entries) {
+    initializeInfo() {
         const infoSprite = this.repo.getImage("info");
-        const info = entries.find(entry => entry[0] === "questions")[1];
+        const info = this.entries.find(entry => entry[0] === "questions")[1];
         const tempInfoArr = [];
         for (let i = 0; i < Game.AMOUNT_OF_INFO; i++) {
             const randomIndex = Math.floor(Math.random() * this.blocks.length);
@@ -308,13 +333,10 @@ class LevelLogic extends Logic {
             tempInfoArr.push(newInfoObj);
         }
         const retry = tempInfoArr.map(temp => {
-            if (this.fullCollision(this.blocks, temp)[0]) {
-                return true;
-            }
-            return false;
+            return this.fullCollision(this.blocks, temp)[0];
         }).find(e => e === true);
         if (retry) {
-            this.initializeInfo(entries);
+            this.initializeInfo();
         }
         else {
             tempInfoArr.forEach(infoObj => this.infoObjects.push(infoObj));
@@ -468,9 +490,6 @@ class LevelLogic extends Logic {
             }
         }
     }
-    isComplete() {
-        return this.enemies.length === 0;
-    }
     get playerImageIndex() {
         return this.currentPlayerImgIndex.state;
     }
@@ -483,6 +502,9 @@ class LevelLogic extends Logic {
         this.makePlayerFall(collidesWithStandableSide);
         this.idlePlayer();
         this.makePlayerJump();
+    }
+    isComplete() {
+        return this.enemies.length === 0;
     }
     get score() {
         return this._score;
@@ -541,6 +563,17 @@ class LevelView extends LevelLogic {
     drawEnemies() {
         this.drawEntities(this.enemies);
     }
+    drawBlocks() {
+        this.drawEntities(this.blocks);
+    }
+    drawEntities(entities) {
+        entities.forEach((entity) => {
+            entity.draw(this.ctx);
+        });
+    }
+    drawPlayer() {
+        this.player.draw(this.ctx, this.playerImageIndex);
+    }
     drawInfoScreen() {
         const result = this.interactsWithInfo();
         if (this.window && result !== undefined) {
@@ -576,17 +609,6 @@ class LevelView extends LevelLogic {
             questionObj.drawText(this.ctx);
         }
     }
-    drawBlocks() {
-        this.drawEntities(this.blocks);
-    }
-    drawEntities(entities) {
-        entities.forEach((entity) => {
-            entity.draw(this.ctx);
-        });
-    }
-    drawPlayer() {
-        this.player.draw(this.ctx, this.playerImageIndex);
-    }
 }
 class MenuLogic extends Logic {
     constructor(width, height, repo) {
@@ -604,9 +626,6 @@ class MenuLogic extends Logic {
         this.keyboardListener = new KeyboardListener();
         const playerSprites = Player.PLAYER_SPRITES.map((key) => this.repo.getImage(key));
         this.player = new Player(this.width / 3, 0, 0, 0, playerSprites);
-    }
-    set totalScore(score) {
-        this._totalScore = score;
     }
     initializeImages() {
         this.speakers = [...Speaker.SPEAKER_SPRITES].map((key) => {
@@ -653,19 +672,6 @@ class MenuLogic extends Logic {
             this.canJump.right = true;
         }
     }
-    interactsWithLevel() {
-        let returnValue = [false, null];
-        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_ENTER)) {
-            this.menuItems.forEach((menuItem, i) => {
-                const currentPlayerSprite = this.repo.getImage(`main_char_${this.currentPlayerImgIndex.state + 1}`);
-                const playerPos = this.player.xPos + currentPlayerSprite.width;
-                if (playerPos >= menuItem.xPos && playerPos <= menuItem.xPos + this.repo.getImage("level1").width) {
-                    returnValue = [true, i];
-                }
-            });
-        }
-        return returnValue;
-    }
     changeSprite() {
         if (this.animate(250)) {
             if (this.currentPlayerImgIndex.state !== 0) {
@@ -699,6 +705,22 @@ class MenuLogic extends Logic {
             }
         });
     }
+    interactsWithLevel() {
+        let returnValue = [false, null];
+        if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_ENTER)) {
+            this.menuItems.forEach((menuItem, i) => {
+                const currentPlayerSprite = this.repo.getImage(`main_char_${this.currentPlayerImgIndex.state + 1}`);
+                const playerPos = this.player.xPos + currentPlayerSprite.width;
+                if (playerPos >= menuItem.xPos && playerPos <= menuItem.xPos + this.repo.getImage("level1").width) {
+                    returnValue = [true, i];
+                }
+            });
+        }
+        return returnValue;
+    }
+    set totalScore(score) {
+        this._totalScore = score;
+    }
 }
 MenuLogic.MENU_MUSIC = Game.AUDIO_PATH + "theme_song_veilig_online_the_game.wav";
 MenuLogic.AMOUNT_OF_FRAMES = 37;
@@ -714,7 +736,7 @@ class MenuView extends MenuLogic {
         this.totalScoreText.drawText(this.ctx);
     }
     drawInstructions() {
-        const instructionText = "PRESS ENTER TO START LEVEL";
+        const instructionText = "DRUK OP ENTER OM TE STARTEN | DRUK OP I VOOR DE GEBRUIKSHANDLEIDING";
         const instructions = new TextString(this.width / 2, this.height / 2 + this.repo.getImage("earth").height, instructionText);
         instructions.fillStyle = "white";
         instructions.drawText(this.ctx);
@@ -737,8 +759,8 @@ class MenuView extends MenuLogic {
     }
     drawBackGround() {
         const background = this.repo.getImage("earth");
-        background.width = 300;
-        background.height = 300;
+        background.width = Calculate.calculateX(300);
+        background.height = Calculate.calculateY(300);
         this.ctx.drawImage(this.changeBackground(), 0, 0, this.width, this.height);
         this.ctx.drawImage(background, (this.width / 2) - (background.width / 2), (this.height / 2) - (background.height / 2), background.width, background.height);
     }
@@ -762,8 +784,9 @@ class GameEntity {
     }
     calculateVelocity(velocityX, velocityY) {
         const diff = window.fps / Game.BASELINE_FPS;
-        const xVel = Math.round(velocityX / diff);
-        const yVel = Math.round(velocityY / diff);
+        const xVel = Calculate.calculateX(Math.round(velocityX / diff));
+        const yVel = Calculate.calculateY(Math.round(velocityY / diff));
+        console.log(xVel);
         return [xVel, yVel];
     }
     get velocityX() {
@@ -800,7 +823,8 @@ class Block extends GameEntity {
         return this.img;
     }
     draw(ctx) {
-        ctx.drawImage(this.img, this.xPos, this.yPos);
+        ctx.drawImage(this.img, this.xPos, this.yPos, this.img.width, this.img.height);
+        ctx.drawImage(this.img, this.xPos, this.yPos, this.img.width, this.img.height);
     }
 }
 class Coin extends GameEntity {
@@ -816,7 +840,7 @@ class Coin extends GameEntity {
         return this._score;
     }
     draw(ctx) {
-        ctx.drawImage(this.img, this.xPos, this.yPos);
+        ctx.drawImage(this.img, this.xPos, this.yPos, this.img.width, this.img.height);
     }
 }
 Coin.SCORE = 10;
@@ -837,7 +861,7 @@ class Enemy extends GameEntity {
         return this._answer;
     }
     draw(ctx) {
-        ctx.drawImage(this.img, this.xPos, this.yPos);
+        ctx.drawImage(this.img, this.xPos, this.yPos, this.img.width, this.img.height);
     }
 }
 class InfoObject extends GameEntity {
@@ -857,7 +881,7 @@ class InfoObject extends GameEntity {
         return this._question;
     }
     draw(ctx) {
-        ctx.drawImage(this.img, this.xPos, this.yPos);
+        ctx.drawImage(this.img, this.xPos, this.yPos, this.img.width, this.img.height);
     }
 }
 class MenuItem extends GameEntity {
@@ -869,7 +893,7 @@ class MenuItem extends GameEntity {
         return this.image;
     }
     draw(ctx) {
-        ctx.drawImage(this.image, this.xPos, this.yPos);
+        ctx.drawImage(this.image, this.xPos, this.yPos, this.image.width, this.image.height);
     }
 }
 class Player extends GameEntity {
@@ -894,7 +918,7 @@ class Player extends GameEntity {
         return this.images[0];
     }
     draw(ctx, state) {
-        ctx.drawImage(this.images[state], this.xPos, this.yPos);
+        ctx.drawImage(this.images[state], this.xPos, this.yPos, this.images[state].width, this.images[state].height);
     }
 }
 Player.PLAYER_SPRITES = [`main_char_1.png`, `main_char_2.png`, `run-left1.png`, `run-left2.png`, `run-left3.png`, `run-left4.png`, `run-left5.png`, `run-left6.png`,
@@ -908,7 +932,7 @@ class Speaker extends GameEntity {
         return this.image;
     }
     draw(ctx) {
-        ctx.drawImage(this.image, this.xPos, this.yPos);
+        ctx.drawImage(this.image, this.xPos, this.yPos, this.image.width, this.image.height);
     }
 }
 Speaker.SPEAKER_SPRITES = ["not-muted.png", "muted.png"];
@@ -934,16 +958,33 @@ class Water extends GameEntity {
         return this.img;
     }
     draw(ctx) {
-        ctx.drawImage(this.img, this.xPos, this.yPos);
+        ctx.drawImage(this.img, this.xPos, this.yPos, this.img.width, this.img.height);
     }
 }
 Water.SPRITE = [""];
 class Calculate {
-    static calculateWidthMultiplier() {
-        return (1 - Math.abs((window.innerWidth - Calculate.BASELINE_WIDTH) / Calculate.BASELINE_WIDTH));
+    static calculateWidthMultiplier(width) {
+        return width * (1 + (window.innerWidth - Calculate.BASELINE_WIDTH) / Calculate.BASELINE_WIDTH);
     }
-    static calculateHeightMultiplier() {
-        return (1 - Math.abs((window.innerHeight - Calculate.BASELINE_HEIGHT) / Calculate.BASELINE_HEIGHT));
+    static calculateHeightMultiplier(height) {
+        return height * (1 + (window.innerHeight - Calculate.BASELINE_HEIGHT) / Calculate.BASELINE_HEIGHT);
+    }
+    static calculateY(y) {
+        const percentage = y / Calculate.BASELINE_HEIGHT * 100;
+        const newYPos = window.innerHeight / 100 * percentage;
+        return Math.round(newYPos);
+    }
+    static calculateX(x) {
+        const percentage = x / Calculate.BASELINE_WIDTH * 100;
+        const newXPos = window.innerWidth / 100 * percentage;
+        return Math.round(newXPos);
+    }
+    static calculate(number) {
+        const actual = (window.innerWidth * window.innerHeight);
+        const baseLine = (Calculate.BASELINE_WIDTH * Calculate.BASELINE_HEIGHT);
+        const difference = (actual - baseLine);
+        const multiplier = 1 + (difference / baseLine);
+        return number * multiplier;
     }
 }
 Calculate.BASELINE_WIDTH = 1920;
@@ -962,8 +1003,8 @@ class ImageLoader {
         const key = (path.includes("|") ? path.split(" |").shift() : path).split("/").pop().split(".").shift();
         image.addEventListener("load", () => {
             if (!path.includes("|") && Calculate.BASELINE_WIDTH !== window.innerWidth && Calculate.BASELINE_HEIGHT !== window.innerHeight) {
-                image.width = image.width * Calculate.calculateWidthMultiplier();
-                image.height = image.height * Calculate.calculateHeightMultiplier();
+                image.width = Calculate.calculateX(image.width);
+                image.height = Calculate.calculateY(image.height);
             }
             this.images.push({ key: key, image: image });
             this.loadingAssets.splice(this.loadingAssets.indexOf(key), 1);

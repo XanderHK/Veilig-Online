@@ -1,3 +1,3 @@
-class GameView {
+class GameView extends Game {
 
 }
