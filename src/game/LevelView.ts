@@ -28,7 +28,7 @@ class LevelView extends LevelLogic {
         this.drawBlocks();
         this.drawCoins();
         this.drawEnemies();
-        this.playerActions();
+        this.actions();
         this.drawPlayer();
         this.drawWater();
         this.drawScore();
@@ -89,7 +89,9 @@ class LevelView extends LevelLogic {
      * Draws all the enemies
      */
     private drawEnemies() {
-        this.drawEntities(this.enemies)
+        this.enemies.forEach(enemy => {
+            enemy.draw(this.ctx, this.enemyImageIndex)
+        })
     }
 
     /**
@@ -120,9 +122,11 @@ class LevelView extends LevelLogic {
         if (this.window && result !== undefined) {
             const answer = result.answer
             const question = result.question;
-
+            // todo add the textstring in the infoobject class same for enemy
             const questionObj: TextString = new TextString(this.cx, this.cy + 50, question)
             const answerObj = new TextString(this.cx, this.cy + 150, answer)
+            questionObj.fontSize = 24;
+            answerObj.fontSize = 24;
 
             this.ctx.font = `${questionObj.fontSize}px ${questionObj.font}`;
             const answerWidth = this.ctx.measureText(answer).width;
@@ -145,6 +149,7 @@ class LevelView extends LevelLogic {
         if (this.window && result !== undefined) {
             const question = result.question;
             const questionObj: TextString = new TextString(this.cx, this.cy + 50, question);
+            questionObj.fontSize = 24;
 
             this.ctx.font = `${questionObj.fontSize}px ${questionObj.font}`;
             const questionWidth = this.ctx.measureText(question).width;

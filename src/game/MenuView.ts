@@ -23,6 +23,9 @@ class MenuView extends MenuLogic {
         this.totalScoreText = new TextString(this.width - this.ctx.measureText("0000").width, 100, String(0));
     }
 
+    /**
+     * Draws the total score onto the screen
+     */
     private drawTotalScore() {
         this.totalScoreText.fillStyle = "white";
         this.totalScoreText.text = String(this._totalScore);

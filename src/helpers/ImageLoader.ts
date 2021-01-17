@@ -22,7 +22,7 @@ class ImageLoader {
         const image = new Image();
         const key = (path.includes("|") ? path.split(" |").shift() : path).split("/").pop().split(".").shift();
         image.addEventListener("load", () => {
-            if (!path.includes("|") && Calculate.BASELINE_WIDTH !== window.innerWidth && Calculate.BASELINE_HEIGHT !== window.innerHeight) {
+            if (!path.includes("|") && Calculate.NATIVE_WIDTH !== window.innerWidth && Calculate.NATIVE_HEIGHT !== window.innerHeight) {
                 image.width = Calculate.calculateX(image.width);
                 image.height = Calculate.calculateY(image.height);
             }

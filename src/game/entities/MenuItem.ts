@@ -1,3 +1,4 @@
+/// <reference path="GameEntity.ts"/>
 class MenuItem extends GameEntity {
 
     private image: HTMLImageElement

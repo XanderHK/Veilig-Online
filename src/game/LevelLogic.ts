@@ -4,6 +4,7 @@ abstract class LevelLogic extends Logic {
     private keyboardListener: KeyboardListener;
     private lastFrameAfterJump: number;
     private currentPlayerImgIndex: { state: number } = { state: 0 };
+    private currentEnemyImgIndex: { state: number } = { state: 0 };
     private _score: number = 0;
     private _lives: number = Game.AMOUNT_OF_LIVES;
     private _name: string;
@@ -103,12 +104,13 @@ abstract class LevelLogic extends Logic {
  * Initializes the enemy objects that should be drawn on the canvas
  */
     private initializeEnemies() {
-        const enemySprite: HTMLImageElement = this.repo.getImage("enemy");
         const info: { answer: string, question: string }[] = this.entries.find(entry => entry[0] === "questions")[1]
         for (let i = 0; i < Game.AMOUNT_OF_ENEMIES; i++) {
             const randomIndex: number = Math.floor(Math.random() * this.blocks.length);
             const randomSpawn: Block = this.blocks[randomIndex];
-            this.enemies.push(new Enemy(randomSpawn.xPos, randomSpawn.yPos - enemySprite.height, enemySprite, info[i].question, info[i].answer));
+            const enemySprites: HTMLImageElement[] = Enemy.SPRITES.map((key: string) => this.repo.getImage(key))
+            const newEnemyObj: Enemy = new Enemy(randomSpawn.xPos, randomSpawn.yPos - enemySprites[0].height, enemySprites, info[i].question, info[i].answer);
+            this.enemies.push(newEnemyObj)
         }
     }
 
@@ -150,6 +152,7 @@ abstract class LevelLogic extends Logic {
             return [statement, i]
         })
         const result = bools.find(bool => bool[0] === true);
+
         return result === undefined ? [false, null] : result
     }
 
@@ -162,7 +165,6 @@ abstract class LevelLogic extends Logic {
             const coinIndex: number = coinCollisionResult[1] as number
             this._score += this.coins[coinIndex].score;
             this.coins.splice(coinIndex, 1);
-
         }
     }
 
@@ -188,16 +190,17 @@ abstract class LevelLogic extends Logic {
     }
 
 
+
     /**
-     * Checks if the player collides with a side of a GameEntity
-     * @param {Player} player 
+     * Checks if the entity collides with a side of a GameEntity
+     * @param {entity} entity 
      * @param {GameEntity} entity 
      */
-    private collidesWithSide(player: Player, entity: GameEntity) {
-        const dx: number = (player.xPos + this.repo.getImage("main_char_1").width / 2) - (entity.xPos + this.repo.getImage("tile").width / 2);
-        const dy: number = (player.yPos + this.repo.getImage("main_char_1").height / 2) - (entity.yPos + this.repo.getImage("tile").height / 2);
-        const width: number = (this.repo.getImage("main_char_1").width + this.repo.getImage("tile").width) / 2;
-        const height: number = (this.repo.getImage("main_char_1").height + this.repo.getImage("tile").height) / 2;
+    private collidesWithSide(entity: GameEntity, compareEntity: GameEntity) {
+        const dx: number = (entity.xPos + entity.sprite.width / 2) - (compareEntity.xPos + compareEntity.sprite.width / 2);
+        const dy: number = (entity.yPos + entity.sprite.height / 2) - (compareEntity.yPos + compareEntity.sprite.height / 2);
+        const width: number = (entity.sprite.width + compareEntity.sprite.width) / 2;
+        const height: number = (entity.sprite.height + compareEntity.sprite.height) / 2;
         const crossWidth: number = width * dy;
         const crossHeight: number = height * dx;
         let collision: CollisionState = CollisionState.None;
@@ -235,7 +238,7 @@ abstract class LevelLogic extends Logic {
     /**
      * Method that makes the player jump and delays the next jump
      */
-    private makePlayerJump() {
+    private makePlayerJump(collidesWithNoneStandableSide: (boolean | CollisionState)[]) {
         const timeIntervalInFrames = window.fps / 2;
         if (this.lastFrameAfterJump === undefined || this.frames > this.lastFrameAfterJump + timeIntervalInFrames) {
             if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_UP) && this.player.xPos > 0) {
@@ -243,7 +246,9 @@ abstract class LevelLogic extends Logic {
                 this.player.jump();
             }
         } else if (this.frames < this.lastFrameAfterJump + timeIntervalInFrames / 3) {
-            this.player.jump();
+            if (collidesWithNoneStandableSide[0] !== CollisionState.Bottom) {
+                this.player.jump();
+            }
         }
     }
 
@@ -297,6 +302,20 @@ abstract class LevelLogic extends Logic {
                 this.changePlayerSprite(8, 13);
             }
         }
+    }
+
+    /**
+   * Bundle method that invokes every player movement related method
+   */
+    private playerActions() {
+        const collidesWithStandableSide: boolean = this.collidesWithTopOfBlock();
+        const collidesWithNoneStandableSide = this.collidesWithLeftRightOrBottom();
+        this.collidesWithCoin();
+        this.movePlayerRight(collidesWithNoneStandableSide);
+        this.movePlayerLeft(collidesWithNoneStandableSide);
+        this.makePlayerFall(collidesWithStandableSide);
+        this.idlePlayer();
+        this.makePlayerJump(collidesWithNoneStandableSide);
     }
 
     /**
@@ -354,26 +373,38 @@ abstract class LevelLogic extends Logic {
     }
 
     /**
+     * Changes the index every so often
+     * @param {number} start 
+     * @param {number} end 
+     */
+    protected changeEnemySprite(start: number, end: number) {
+        if (this.animate(250)) {
+            if (this.currentEnemyImgIndex.state !== start) {
+                this.currentEnemyImgIndex.state = start;
+            } else {
+                this.currentEnemyImgIndex.state = end;
+            }
+        }
+    }
+
+    /**
+     * Returns the index from Enemy.SPRITES which will be used to draw the correct enemy sprite
+     */
+    protected get enemyImageIndex(): number {
+        return this.currentEnemyImgIndex.state;
+    }
+
+
+    /**
      * returns the current image index from Player.SPRITES
      */
     protected get playerImageIndex(): number {
         return this.currentPlayerImgIndex.state;
     }
 
-
-
-    /**
-     * Bundle method that invokes every player movement related method
-     */
-    protected playerActions() {
-        const collidesWithStandableSide: boolean = this.collidesWithTopOfBlock();
-        const collidesWithNoneStandableSide = this.collidesWithLeftRightOrBottom();
-        this.collidesWithCoin();
-        this.movePlayerRight(collidesWithNoneStandableSide);
-        this.movePlayerLeft(collidesWithNoneStandableSide);
-        this.makePlayerFall(collidesWithStandableSide);
-        this.idlePlayer();
-        this.makePlayerJump();
+    protected actions() {
+        this.playerActions();
+        this.changeEnemySprite(0, 1);
     }
 
     /**

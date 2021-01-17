@@ -33,7 +33,7 @@
                     { "xStart": 1250, "xEnd": 1300, "yStart": 650, "yEnd": 550 },
                     { "xStart": 1300, "xEnd": 1300, "yStart": 650, "yEnd": 550 }
                 ],
-                "questions" : [{"answer" : "NEE", "question" : "Je wordt op social media toegevoegd door een onbekend iemand. Voeg je diegene toe?"  }, {"answer" : "JA", "question" : "blub"}],
+                "questions" : [{"answer" : "NEE", "question" : "Je moet op een website een nieuw account aanmaken. Je gebruikt het wachtwoord 'Welkom123' Is dit een goed wachtwoord?"  }, {"answer" : "NEE", "question" : "Je bent op een treinstation aan het wachten en besluit om gebruik te maken van het open wifinetwerk FrEe WifI HeRe, Maak je verbinding met het wifi netwerk?"}],
                 "background" : "lava",
                 "tile" : "lavatile",
                 "spikes": [{ "xStart": 0, "xEnd": 1950, "yStart": 900, "yEnd": 1050 }]
