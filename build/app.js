@@ -315,11 +315,10 @@ class LevelLogic extends Logic {
     }
     initializeEnemies() {
         const info = this.entries.find(entry => entry[0] === "questions")[1];
+        const enemyPos = this.entries.find(entry => entry[0] === "enemyPos")[1];
         for (let i = 0; i < Game.AMOUNT_OF_ENEMIES; i++) {
-            const randomIndex = Math.floor(Math.random() * this.blocks.length);
-            const randomSpawn = this.blocks[randomIndex];
             const enemySprites = Enemy.SPRITES.map((key) => this.repo.getImage(key));
-            const newEnemyObj = new Enemy(randomSpawn.xPos, randomSpawn.yPos - enemySprites[0].height, enemySprites, info[i].question, info[i].answer);
+            const newEnemyObj = new Enemy(enemyPos[i].x, enemyPos[i].y - enemySprites[0].height, enemySprites, info[i].question, info[i].answer);
             this.enemies.push(newEnemyObj);
         }
     }
