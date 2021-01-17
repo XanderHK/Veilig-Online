@@ -37,7 +37,7 @@ abstract class LevelLogic extends Logic {
         this.initializeEntities();
         this.keyboardListener = new KeyboardListener();
         const playerSprites: HTMLImageElement[] = Player.PLAYER_SPRITES.map((key: string) => this.repo.getImage(key))
-        this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 8, 10, playerSprites);
+        this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 6, 11, playerSprites);
     }
 
 
