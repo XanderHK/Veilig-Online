@@ -105,10 +105,11 @@ abstract class LevelLogic extends Logic {
  */
     private initializeEnemies() {
         const info: { answer: string, question: string }[] = this.entries.find(entry => entry[0] === "questions")[1]
-        const enemyPos: { x: number, y: number }[] = this.entries.find(entry => entry[0] === "enemyPos")[1]
         for (let i = 0; i < Game.AMOUNT_OF_ENEMIES; i++) {
             const enemySprites: HTMLImageElement[] = Enemy.SPRITES.map((key: string) => this.repo.getImage(key))
-            const newEnemyObj: Enemy = new Enemy(enemyPos[i].x, enemyPos[i].y - enemySprites[0].height, enemySprites, info[i].question, info[i].answer);
+            const randomIndex: number = Math.floor(Math.random() * this.blocks.length);
+            const randomSpawn: Block = this.blocks[randomIndex];
+            const newEnemyObj: Enemy = new Enemy(randomSpawn.xPos, randomSpawn.yPos - enemySprites[0].height, enemySprites, info[i].question, info[i].answer);
             this.enemies.push(newEnemyObj)
         }
     }
@@ -170,7 +171,7 @@ abstract class LevelLogic extends Logic {
     /**
      * Method that checks if the player is ontop of a block
      */
-    private collidesWithTopOfBlock() {
+    private collidesWithTopOfBlock(): boolean {
         return this.blocks.map(block => {
             return this.collidesWithSide(this.player, block)
         }).find(side => side === CollisionState.Top) === undefined ? false : true;
@@ -179,7 +180,7 @@ abstract class LevelLogic extends Logic {
     /**
      * Method that checks if the player is colliding with any side besides the top of the block
      */
-    private collidesWithLeftRightOrBottom() {
+    private collidesWithLeftRightOrBottom(): (boolean | CollisionState)[] {
         const side = this.blocks.map(block => {
             return this.collidesWithSide(this.player, block);
         }).find(side => side === CollisionState.Bottom || side === CollisionState.Left || side === CollisionState.Right)
@@ -275,11 +276,22 @@ abstract class LevelLogic extends Logic {
         if (!collidesWithStandableSide) {
             if (!this.hitsBottom() && !this.hitsSide()) {
                 this.player.gravity();
+                this.putPlayerOnTop();
             } else {
                 this._lives--;
                 this.player.xPos = this.blocks[0].xPos + this.repo.getImage("main_char_1").width;
                 this.player.yPos = this.blocks[0].yPos - this.repo.getImage("main_char_1").height;
             }
+        }
+    }
+    /**
+     * Method to put the player ontop of the block after falling (mainly necessary for resolutions lower than 1920)
+     */
+    private putPlayerOnTop() {
+        const result = this.fullCollision(this.blocks, this.player);
+        if (this.collidesWithTopOfBlock() && result[0] !== false && this.collidesWithLeftRightOrBottom()[1]) {
+            const block: Block = this.blocks[result[1] as number]
+            this.player.yPos = block.yPos - this.player.sprite.height;
         }
     }
 

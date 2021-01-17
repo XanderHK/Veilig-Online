@@ -315,10 +315,11 @@ class LevelLogic extends Logic {
     }
     initializeEnemies() {
         const info = this.entries.find(entry => entry[0] === "questions")[1];
-        const enemyPos = this.entries.find(entry => entry[0] === "enemyPos")[1];
         for (let i = 0; i < Game.AMOUNT_OF_ENEMIES; i++) {
             const enemySprites = Enemy.SPRITES.map((key) => this.repo.getImage(key));
-            const newEnemyObj = new Enemy(enemyPos[i].x, enemyPos[i].y - enemySprites[0].height, enemySprites, info[i].question, info[i].answer);
+            const randomIndex = Math.floor(Math.random() * this.blocks.length);
+            const randomSpawn = this.blocks[randomIndex];
+            const newEnemyObj = new Enemy(randomSpawn.xPos, randomSpawn.yPos - enemySprites[0].height, enemySprites, info[i].question, info[i].answer);
             this.enemies.push(newEnemyObj);
         }
     }
@@ -430,12 +431,20 @@ class LevelLogic extends Logic {
         if (!collidesWithStandableSide) {
             if (!this.hitsBottom() && !this.hitsSide()) {
                 this.player.gravity();
+                this.putPlayerOnTop();
             }
             else {
                 this._lives--;
                 this.player.xPos = this.blocks[0].xPos + this.repo.getImage("main_char_1").width;
                 this.player.yPos = this.blocks[0].yPos - this.repo.getImage("main_char_1").height;
             }
+        }
+    }
+    putPlayerOnTop() {
+        const result = this.fullCollision(this.blocks, this.player);
+        if (this.collidesWithTopOfBlock() && result[0] !== false && this.collidesWithLeftRightOrBottom()[1]) {
+            const block = this.blocks[result[1]];
+            this.player.yPos = block.yPos - this.player.sprite.height;
         }
     }
     movePlayerLeft(collidesWithNoneStandableSide) {
@@ -676,8 +685,8 @@ class MenuLogic extends Logic {
         }
     }
     movePlayer() {
-        const maxBound = this.menuItems[this.menuItems.length - 1].xPos;
-        const minBound = this.menuItems[0].xPos;
+        const maxBound = Math.ceil(this.menuItems[this.menuItems.length - 1].xPos);
+        const minBound = Math.floor(this.menuItems[0].xPos);
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && this.canJump.right && this.player.xPos <= maxBound) {
             this.canJump.right = false;
             const nextXPos = this.player.xPos + (this.repo.getImage("level1").width * 2);
