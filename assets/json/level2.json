@@ -66,7 +66,7 @@
                     { "xStart":1800 , "xEnd": 1950, "yStart": 100, "yEnd": 150}
                
                 ],
-                "questions" : [{"answer" : "NEE", "question" : "bloop"}, {"answer" : "JA", "question" : "blub"}],
+                "questions" : [{"answer" : "NEE", "question" : "Je wordt op social media toegevoegd door een onbekend iemand. Voeg je diegene toe? "}, {"answer" : "NEE", "question" : "Je hebt een nieuwe computer gekocht. De fabrikant van de computer is vergeten om vooraf een  antivirusprogramma te installeren. Gebruik je de computer zonder antivirusprogramma?"}],
                 "background" : "winter",
                 "tile" : "wintertile",
                 "spikes": [{ "xStart": 0, "xEnd": 1950, "yStart": 900, "yEnd": 1050 }]

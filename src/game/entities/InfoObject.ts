@@ -1,3 +1,4 @@
+/// <reference path="GameEntity.ts"/>
 class InfoObject extends GameEntity {
 
     private img: HTMLImageElement;

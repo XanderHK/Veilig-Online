@@ -1,7 +1,7 @@
 /**
  * Main class of this Game.
  */
-abstract class Game {
+class Game {
 
     // Class constants
     public static readonly IMG_PATH = "./assets/img/";
@@ -89,6 +89,7 @@ abstract class Game {
             "coin.png",
             "info.png",
             "enemy.png",
+            "enemy2.png",
             "winter.png",
             "lava.jpg",
             "Forest.jpg",
@@ -183,6 +184,9 @@ abstract class Game {
         }
     }
 
+    /**
+     * Method that gets executed if the state is over which re-initializes the levels
+     */
     private overState() {
         this.lostText.drawText(this.ctx)
         if (this.keyListener.isKeyDown(KeyboardListener.KEY_R)) {
@@ -192,17 +196,26 @@ abstract class Game {
         }
     }
 
+    /**
+     * Method that gets executed every loop to check if the game has been beaten
+     */
     private beatTheGame() {
         if (this.LevelViews.every((level: LevelView) => level.isComplete() === true)) {
             this.gamestate = GameState.GameBeaten
         }
     }
 
+    /**
+     * If the gamestate is GameBeaten it will draw on the screen that the game has been beaten
+     */
     private winState() {
         this.finishedText.drawText(this.ctx);
         this.restart()
     }
 
+    /**
+     *  Draws all the instructions on the screen when the state is GameInstructions
+     */
     private initializeInstructionText(): TextString[] {
         const textStringArr: TextString[] = [];
         const spaceBetween = 50;
@@ -224,6 +237,9 @@ abstract class Game {
         return textStringArr;
     }
 
+    /**
+     * The method that gets exeucted when the game is in its instructions state
+     */
     private instructionState() {
         if (this.keyListener.isKeyDown(KeyboardListener.KEY_ESCAPE)) {
             this.gamestate = GameState.Main
@@ -231,13 +247,18 @@ abstract class Game {
         this.instructionTexts.forEach((text: TextString) => text.drawText(this.ctx))
     }
 
+    /**
+     * The restart method which refreshes the page
+     */
     private restart() {
         if (this.gamestate === GameState.GameBeaten && this.keyListener.isKeyDown(KeyboardListener.KEY_R)) {
             location.reload();
         }
     }
 
-
+    /**
+     * Method that calculates the fps of the client
+     */
     private calculateFps() {
         const now = Date.now();
         if (now - this.last >= 1000 && this.fps === 0) {

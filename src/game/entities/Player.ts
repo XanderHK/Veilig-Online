@@ -1,3 +1,4 @@
+/// <reference path="GameEntity.ts"/>
 class Player extends GameEntity {
 
     public static readonly PLAYER_SPRITES = [`main_char_1.png`, `main_char_2.png`, `run-left1.png`, `run-left2.png`, `run-left3.png`, `run-left4.png`, `run-left5.png`, `run-left6.png`,

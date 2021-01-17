@@ -19,7 +19,7 @@ class Block extends GameEntity {
      * @param {CanvasRenderingContext2D} ctx 
      */
     public draw(ctx: CanvasRenderingContext2D) {
-        ctx.drawImage(this.img, this.xPos, this.yPos, this.img.width, this.img.height);
+
         ctx.drawImage(this.img, this.xPos, this.yPos, this.img.width, this.img.height);
     }
 }

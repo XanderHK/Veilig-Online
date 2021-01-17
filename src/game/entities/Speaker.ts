@@ -1,3 +1,5 @@
+
+/// <reference path="GameEntity.ts"/>
 class Speaker extends GameEntity {
 
     //File names of the speaker sprites

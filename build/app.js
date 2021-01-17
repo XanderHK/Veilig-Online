@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 window.addEventListener('load', () => {
-    const game = new GameView(document.getElementById('canvas'));
+    const game = new Game(document.getElementById('canvas'));
 });
 class Game {
     constructor(canvas) {
@@ -75,6 +75,7 @@ class Game {
             "coin.png",
             "info.png",
             "enemy.png",
+            "enemy2.png",
             "winter.png",
             "lava.jpg",
             "Forest.jpg",
@@ -213,8 +214,6 @@ Game.AMOUNT_OF_INFO = 2;
 Game.AMOUNT_OF_LIVES = 3;
 Game.AMOUNT_OF_ENEMIES = 2;
 Game.BASELINE_FPS = 60;
-class GameView extends Game {
-}
 class Logic {
     constructor(repo, width, height) {
         this._frames = 0;
@@ -256,6 +255,7 @@ class LevelLogic extends Logic {
     constructor(config, repo, width, height) {
         super(repo, width, height);
         this.currentPlayerImgIndex = { state: 0 };
+        this.currentEnemyImgIndex = { state: 0 };
         this._score = 0;
         this._lives = Game.AMOUNT_OF_LIVES;
         this.blocks = [];
@@ -314,12 +314,13 @@ class LevelLogic extends Logic {
         });
     }
     initializeEnemies() {
-        const enemySprite = this.repo.getImage("enemy");
         const info = this.entries.find(entry => entry[0] === "questions")[1];
         for (let i = 0; i < Game.AMOUNT_OF_ENEMIES; i++) {
             const randomIndex = Math.floor(Math.random() * this.blocks.length);
             const randomSpawn = this.blocks[randomIndex];
-            this.enemies.push(new Enemy(randomSpawn.xPos, randomSpawn.yPos - enemySprite.height, enemySprite, info[i].question, info[i].answer));
+            const enemySprites = Enemy.SPRITES.map((key) => this.repo.getImage(key));
+            const newEnemyObj = new Enemy(randomSpawn.xPos, randomSpawn.yPos - enemySprites[0].height, enemySprites, info[i].question, info[i].answer);
+            this.enemies.push(newEnemyObj);
         }
     }
     initializeInfo() {
@@ -373,11 +374,11 @@ class LevelLogic extends Logic {
         const boolValue = side === undefined ? true : false;
         return [side, boolValue];
     }
-    collidesWithSide(player, entity) {
-        const dx = (player.xPos + this.repo.getImage("main_char_1").width / 2) - (entity.xPos + this.repo.getImage("tile").width / 2);
-        const dy = (player.yPos + this.repo.getImage("main_char_1").height / 2) - (entity.yPos + this.repo.getImage("tile").height / 2);
-        const width = (this.repo.getImage("main_char_1").width + this.repo.getImage("tile").width) / 2;
-        const height = (this.repo.getImage("main_char_1").height + this.repo.getImage("tile").height) / 2;
+    collidesWithSide(entity, compareEntity) {
+        const dx = (entity.xPos + entity.sprite.width / 2) - (compareEntity.xPos + compareEntity.sprite.width / 2);
+        const dy = (entity.yPos + entity.sprite.height / 2) - (compareEntity.yPos + compareEntity.sprite.height / 2);
+        const width = (entity.sprite.width + compareEntity.sprite.width) / 2;
+        const height = (entity.sprite.height + compareEntity.sprite.height) / 2;
         const crossWidth = width * dy;
         const crossHeight = height * dx;
         let collision = CollisionState.None;
@@ -404,7 +405,7 @@ class LevelLogic extends Logic {
     hitsBottom() {
         return this.player.yPos + this.repo.getImage("main_char_1").height >= this.height;
     }
-    makePlayerJump() {
+    makePlayerJump(collidesWithNoneStandableSide) {
         const timeIntervalInFrames = window.fps / 2;
         if (this.lastFrameAfterJump === undefined || this.frames > this.lastFrameAfterJump + timeIntervalInFrames) {
             if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_UP) && this.player.xPos > 0) {
@@ -413,7 +414,9 @@ class LevelLogic extends Logic {
             }
         }
         else if (this.frames < this.lastFrameAfterJump + timeIntervalInFrames / 3) {
-            this.player.jump();
+            if (collidesWithNoneStandableSide[0] !== CollisionState.Bottom) {
+                this.player.jump();
+            }
         }
     }
     idlePlayer() {
@@ -448,6 +451,16 @@ class LevelLogic extends Logic {
                 this.changePlayerSprite(8, 13);
             }
         }
+    }
+    playerActions() {
+        const collidesWithStandableSide = this.collidesWithTopOfBlock();
+        const collidesWithNoneStandableSide = this.collidesWithLeftRightOrBottom();
+        this.collidesWithCoin();
+        this.movePlayerRight(collidesWithNoneStandableSide);
+        this.movePlayerLeft(collidesWithNoneStandableSide);
+        this.makePlayerFall(collidesWithStandableSide);
+        this.idlePlayer();
+        this.makePlayerJump(collidesWithNoneStandableSide);
     }
     interactsWithInfo() {
         const result = this.fullCollision(this.infoObjects, this.player);
@@ -490,18 +503,25 @@ class LevelLogic extends Logic {
             }
         }
     }
+    changeEnemySprite(start, end) {
+        if (this.animate(250)) {
+            if (this.currentEnemyImgIndex.state !== start) {
+                this.currentEnemyImgIndex.state = start;
+            }
+            else {
+                this.currentEnemyImgIndex.state = end;
+            }
+        }
+    }
+    get enemyImageIndex() {
+        return this.currentEnemyImgIndex.state;
+    }
     get playerImageIndex() {
         return this.currentPlayerImgIndex.state;
     }
-    playerActions() {
-        const collidesWithStandableSide = this.collidesWithTopOfBlock();
-        const collidesWithNoneStandableSide = this.collidesWithLeftRightOrBottom();
-        this.collidesWithCoin();
-        this.movePlayerRight(collidesWithNoneStandableSide);
-        this.movePlayerLeft(collidesWithNoneStandableSide);
-        this.makePlayerFall(collidesWithStandableSide);
-        this.idlePlayer();
-        this.makePlayerJump();
+    actions() {
+        this.playerActions();
+        this.changeEnemySprite(0, 1);
     }
     isComplete() {
         return this.enemies.length === 0;
@@ -528,7 +548,7 @@ class LevelView extends LevelLogic {
         this.drawBlocks();
         this.drawCoins();
         this.drawEnemies();
-        this.playerActions();
+        this.actions();
         this.drawPlayer();
         this.drawWater();
         this.drawScore();
@@ -561,7 +581,9 @@ class LevelView extends LevelLogic {
         this.drawEntities(this.water);
     }
     drawEnemies() {
-        this.drawEntities(this.enemies);
+        this.enemies.forEach(enemy => {
+            enemy.draw(this.ctx, this.enemyImageIndex);
+        });
     }
     drawBlocks() {
         this.drawEntities(this.blocks);
@@ -581,6 +603,8 @@ class LevelView extends LevelLogic {
             const question = result.question;
             const questionObj = new TextString(this.cx, this.cy + 50, question);
             const answerObj = new TextString(this.cx, this.cy + 150, answer);
+            questionObj.fontSize = 24;
+            answerObj.fontSize = 24;
             this.ctx.font = `${questionObj.fontSize}px ${questionObj.font}`;
             const answerWidth = this.ctx.measureText(answer).width;
             const questionWidth = this.ctx.measureText(question).width;
@@ -596,6 +620,7 @@ class LevelView extends LevelLogic {
         if (this.window && result !== undefined) {
             const question = result.question;
             const questionObj = new TextString(this.cx, this.cy + 50, question);
+            questionObj.fontSize = 24;
             this.ctx.font = `${questionObj.fontSize}px ${questionObj.font}`;
             const questionWidth = this.ctx.measureText(question).width;
             this.ctx.fillStyle = "white";
@@ -786,7 +811,6 @@ class GameEntity {
         const diff = window.fps / Game.BASELINE_FPS;
         const xVel = Calculate.calculateX(Math.round(velocityX / diff));
         const yVel = Calculate.calculateY(Math.round(velocityY / diff));
-        console.log(xVel);
         return [xVel, yVel];
     }
     get velocityX() {
@@ -824,7 +848,6 @@ class Block extends GameEntity {
     }
     draw(ctx) {
         ctx.drawImage(this.img, this.xPos, this.yPos, this.img.width, this.img.height);
-        ctx.drawImage(this.img, this.xPos, this.yPos, this.img.width, this.img.height);
     }
 }
 class Coin extends GameEntity {
@@ -845,14 +868,14 @@ class Coin extends GameEntity {
 }
 Coin.SCORE = 10;
 class Enemy extends GameEntity {
-    constructor(x, y, sprite, question, answer) {
+    constructor(x, y, sprites, question, answer) {
         super(x, y, 0, 0);
-        this.img = sprite;
+        this.img = sprites;
         this._question = question;
         this._answer = answer;
     }
     get sprite() {
-        return this.img;
+        return this.img[0];
     }
     get question() {
         return this._question;
@@ -860,10 +883,11 @@ class Enemy extends GameEntity {
     get answer() {
         return this._answer;
     }
-    draw(ctx) {
-        ctx.drawImage(this.img, this.xPos, this.yPos, this.img.width, this.img.height);
+    draw(ctx, state) {
+        ctx.drawImage(this.img[state], this.xPos, this.yPos, this.img[state].width, this.img[state].height);
     }
 }
+Enemy.SPRITES = ["enemy.png", "enemy2.png"];
 class InfoObject extends GameEntity {
     constructor(x, y, sprite, question, answer) {
         super(x, y, 0, 0);
@@ -964,31 +988,31 @@ class Water extends GameEntity {
 Water.SPRITE = [""];
 class Calculate {
     static calculateWidthMultiplier(width) {
-        return width * (1 + (window.innerWidth - Calculate.BASELINE_WIDTH) / Calculate.BASELINE_WIDTH);
+        return width * (1 + (window.innerWidth - Calculate.NATIVE_WIDTH) / Calculate.NATIVE_WIDTH);
     }
     static calculateHeightMultiplier(height) {
-        return height * (1 + (window.innerHeight - Calculate.BASELINE_HEIGHT) / Calculate.BASELINE_HEIGHT);
+        return height * (1 + (window.innerHeight - Calculate.NATIVE_HEIGHT) / Calculate.NATIVE_HEIGHT);
     }
     static calculateY(y) {
-        const percentage = y / Calculate.BASELINE_HEIGHT * 100;
+        const percentage = y / Calculate.NATIVE_HEIGHT * 100;
         const newYPos = window.innerHeight / 100 * percentage;
         return Math.round(newYPos);
     }
     static calculateX(x) {
-        const percentage = x / Calculate.BASELINE_WIDTH * 100;
+        const percentage = x / Calculate.NATIVE_WIDTH * 100;
         const newXPos = window.innerWidth / 100 * percentage;
         return Math.round(newXPos);
     }
     static calculate(number) {
         const actual = (window.innerWidth * window.innerHeight);
-        const baseLine = (Calculate.BASELINE_WIDTH * Calculate.BASELINE_HEIGHT);
-        const difference = (actual - baseLine);
-        const multiplier = 1 + (difference / baseLine);
+        const NATIVE = (Calculate.NATIVE_WIDTH * Calculate.NATIVE_HEIGHT);
+        const difference = (actual - NATIVE);
+        const multiplier = 1 + (difference / NATIVE);
         return number * multiplier;
     }
 }
-Calculate.BASELINE_WIDTH = 1920;
-Calculate.BASELINE_HEIGHT = 969;
+Calculate.NATIVE_WIDTH = 1920;
+Calculate.NATIVE_HEIGHT = 969;
 class ImageLoader {
     constructor(assets, prefix) {
         this.images = [];
@@ -1002,7 +1026,7 @@ class ImageLoader {
         const image = new Image();
         const key = (path.includes("|") ? path.split(" |").shift() : path).split("/").pop().split(".").shift();
         image.addEventListener("load", () => {
-            if (!path.includes("|") && Calculate.BASELINE_WIDTH !== window.innerWidth && Calculate.BASELINE_HEIGHT !== window.innerHeight) {
+            if (!path.includes("|") && Calculate.NATIVE_WIDTH !== window.innerWidth && Calculate.NATIVE_HEIGHT !== window.innerHeight) {
                 image.width = Calculate.calculateX(image.width);
                 image.height = Calculate.calculateY(image.height);
             }

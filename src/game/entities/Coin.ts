@@ -1,3 +1,4 @@
+/// <reference path="GameEntity.ts"/>
 class Coin extends GameEntity {
 
     public static readonly SCORE = 10;
