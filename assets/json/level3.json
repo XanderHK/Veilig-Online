@@ -1,37 +1,85 @@
 {
                     "name": "level3",
-                "platforms": [
-                    { "xStart": 0, "xEnd": 200, "yStart": 700, "yEnd": 750 },
-                    { "xStart": 300, "xEnd": 400, "yStart": 650, "yEnd": 700 },
-                    { "xStart": 500, "xEnd": 550, "yStart": 600, "yEnd": 650 },
-                    { "xStart": 650, "xEnd": 700, "yStart": 550, "yEnd": 600 },
-                    { "xStart": 800, "xEnd": 850, "yStart": 500, "yEnd": 550 },
-                    { "xStart": 900, "xEnd": 950, "yStart": 450, "yEnd": 550 },
-                    { "xStart": 950, "xEnd": 1000, "yStart": 450, "yEnd": 550 },
-                    { "xStart": 950, "xEnd": 1000, "yStart": 400, "yEnd": 550 },
-                    { "xStart": 950, "xEnd": 1000, "yStart": 350, "yEnd": 550 },
-                    { "xStart": 950, "xEnd": 1000, "yStart": 300, "yEnd": 550 },
-                    { "xStart": 850, "xEnd": 900, "yStart": 250, "yEnd": 550 },
-                    { "xStart": 800, "xEnd": 850, "yStart": 250, "yEnd": 550 },
-                    { "xStart": 650, "xEnd": 700, "yStart": 250, "yEnd": 550 },
-                    { "xStart": 600, "xEnd": 650, "yStart": 250, "yEnd": 550 },
-                    { "xStart": 600, "xEnd": 650, "yStart": 200, "yEnd": 550 },
-                    { "xStart": 550, "xEnd": 600, "yStart": 250, "yEnd": 550 },
-                    { "xStart": 400, "xEnd": 450, "yStart": 200, "yEnd": 550 },
-                    { "xStart": 200, "xEnd": 250, "yStart": 150, "yEnd": 550 },
-                    { "xStart": 150, "xEnd": 200, "yStart": 150, "yEnd": 550 },
-                    { "xStart": 100, "xEnd": 150, "yStart": 150, "yEnd": 550 },
-                    { "xStart": 50, "xEnd": 100, "yStart": 150, "yEnd": 550 },
-                    { "xStart": 1100, "xEnd": 1150, "yStart": 250, "yEnd": 550 },
-                    { "xStart": 1150, "xEnd": 1200, "yStart": 250, "yEnd": 550 },
-                    { "xStart": 1250, "xEnd": 1300, "yStart": 350, "yEnd": 550 },
-                    { "xStart": 1150, "xEnd": 1200, "yStart": 400, "yEnd": 550 },
-                    { "xStart": 1250, "xEnd": 1300, "yStart": 450, "yEnd": 550 },
-                    { "xStart": 1150, "xEnd": 1200, "yStart": 500, "yEnd": 550 },
-                    { "xStart": 1250, "xEnd": 1300, "yStart": 550, "yEnd": 550 },
-                    { "xStart": 1150, "xEnd": 1200, "yStart": 600, "yEnd": 550 },
-                    { "xStart": 1250, "xEnd": 1300, "yStart": 650, "yEnd": 550 },
-                    { "xStart": 1300, "xEnd": 1300, "yStart": 650, "yEnd": 550 }
+                 "platforms": [
+                    { "xStart": 0, "xEnd": 50, "yStart": 450, "yEnd": 500 },
+                    { "xStart": 50, "xEnd": 100, "yStart": 450, "yEnd": 500 },
+
+                    { "xStart": 350, "xEnd": 400, "yStart": 500, "yEnd": 550 },
+
+
+                    { "xStart": 0, "xEnd": 500, "yStart": 600, "yEnd": 650 },
+
+                    { "xStart": 550, "xEnd": 650, "yStart": 600, "yEnd": 650 },
+                    { "xStart": 650, "xEnd": 700, "yStart": 500, "yEnd": 550 },
+
+
+                    { "xStart": 0, "xEnd": 200, "yStart": 850, "yEnd": 900 },
+                    
+                    
+
+
+                    { "xStart": 50, "xEnd": 100, "yStart": 800, "yEnd": 850 },
+                    { "xStart": 0, "xEnd": 50, "yStart": 750, "yEnd": 800 },
+                    
+                    { "xStart": 200, "xEnd": 250, "yStart": 750, "yEnd": 800 },
+                    { "xStart": 250, "xEnd": 300, "yStart": 800, "yEnd": 850 },
+
+
+                    { "xStart": 600, "xEnd": 750, "yStart": 850, "yEnd": 900 },
+
+
+                    { "xStart": 900, "xEnd": 950, "yStart": 850, "yEnd": 900 },
+                    { "xStart": 1100, "xEnd": 1150, "yStart": 850, "yEnd": 900 },
+                   
+
+                    { "xStart": 800, "xEnd": 850, "yStart": 750, "yEnd": 900 },
+                    { "xStart": 1000, "xEnd": 1050, "yStart": 750, "yEnd": 900 },
+                    { "xStart": 1200, "xEnd": 1250, "yStart": 800, "yEnd": 900 },
+                    
+
+
+
+
+
+                    { "xStart":1300 , "xEnd": 1350, "yStart": 750, "yEnd": 900},
+                    { "xStart":1400 , "xEnd": 1450, "yStart": 700, "yEnd": 950},
+                    { "xStart":1550 , "xEnd": 1600, "yStart": 700, "yEnd": 950},
+                    { "xStart":1600 , "xEnd": 1650, "yStart": 650, "yEnd": 900},
+
+                    { "xStart":1750 , "xEnd": 1800, "yStart": 650, "yEnd": 900},
+                    { "xStart":1750 , "xEnd": 1800, "yStart": 600, "yEnd": 900},
+                    { "xStart":1750 , "xEnd": 1950, "yStart": 550, "yEnd": 900},
+
+
+                    { "xStart":1650 , "xEnd": 1700, "yStart": 500, "yEnd": 900},
+
+
+                    { "xStart":1550 , "xEnd": 1600, "yStart": 450, "yEnd": 900},
+                    { "xStart":1400 , "xEnd": 1450, "yStart": 450, "yEnd": 900},
+                    { "xStart":1200 , "xEnd": 1250, "yStart": 450, "yEnd": 900},
+                    { "xStart":1100 , "xEnd": 1150, "yStart": 400, "yEnd": 950},
+
+                    { "xStart":900 , "xEnd": 950, "yStart": 400, "yEnd": 950},
+                    { "xStart":700 , "xEnd": 750, "yStart": 400, "yEnd": 950},
+                    { "xStart":600 , "xEnd": 650, "yStart": 350, "yEnd": 400},
+                    { "xStart":600 , "xEnd": 650, "yStart": 300, "yEnd": 350},
+
+                    { "xStart":300 , "xEnd": 650, "yStart": 300, "yEnd": 350},
+
+                    
+                    { "xStart":700 , "xEnd": 750, "yStart": 250, "yEnd": 900},
+                    { "xStart":800 , "xEnd": 850, "yStart": 200, "yEnd": 950},
+                    { "xStart":950 , "xEnd": 1000, "yStart": 200, "yEnd": 950},
+
+                
+
+                    { "xStart":1150 , "xEnd": 1200, "yStart": 200, "yEnd": 250},
+                    { "xStart":1300 , "xEnd": 1350, "yStart": 150, "yEnd": 200},
+                    { "xStart":1450 , "xEnd": 1500, "yStart": 100, "yEnd": 200},
+                    { "xStart":1650 , "xEnd": 1700, "yStart": 100, "yEnd": 200},
+                    { "xStart":1800 , "xEnd": 1950, "yStart": 100, "yEnd": 150}
+                    
+           
                 ],
                 "questions" : [{"answer" : "NEE", "question" : "Je moet op een website een nieuw account aanmaken. Je gebruikt het wachtwoord 'Welkom123' Is dit een goed wachtwoord?"  }, {"answer" : "NEE", "question" : "Je bent op een treinstation aan het wachten en besluit om gebruik te maken van het open wifinetwerk FrEe WifI HeRe, Maak je verbinding met het wifi netwerk?"}],
                 "background" : "lava",

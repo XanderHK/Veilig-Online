@@ -424,9 +424,12 @@ class LevelLogic extends Logic {
             this.changePlayerSprite(0, 1);
         }
     }
+    hitsSide() {
+        return this.player.xPos + this.repo.getImage("main_char_1").width <= -30;
+    }
     makePlayerFall(collidesWithStandableSide) {
         if (!collidesWithStandableSide) {
-            if (!this.hitsBottom()) {
+            if (!this.hitsBottom() && !this.hitsSide()) {
                 this.player.gravity();
             }
             else {

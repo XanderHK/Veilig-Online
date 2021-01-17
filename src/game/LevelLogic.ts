@@ -262,12 +262,19 @@ abstract class LevelLogic extends Logic {
     }
 
     /**
+     * Method that checks if the player hits the side of the canvas
+     */
+    private hitsSide() {
+        return this.player.xPos + this.repo.getImage("main_char_1").width <= -30;
+    }
+
+    /**
      * Method checks if the player needs to fall
      * @param {boolean} collidesWithStandableSide 
      */
     private makePlayerFall(collidesWithStandableSide: boolean) {
         if (!collidesWithStandableSide) {
-            if (!this.hitsBottom()) {
+            if (!this.hitsBottom() && !this.hitsSide()) {
                 this.player.gravity();
             } else {
                 this._lives--;
