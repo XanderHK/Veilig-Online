@@ -25,8 +25,13 @@ abstract class Game {
     private repoKeys: string[];
     private keyListener: KeyboardListener;
 
+<<<<<<< HEAD
     // All views
     private LevelViews: LevelView[] = [];
+=======
+    private LevelViews: View[] = [];
+
+>>>>>>> 6c903671cd40353d8da752991cb01a97694f18a0
     private menuView: MenuView;
     // All textstrings
     private lostText: TextString;
