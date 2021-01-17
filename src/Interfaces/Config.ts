@@ -5,5 +5,7 @@ interface Config {
     questions: { answer: boolean, question: string }[]
     background: string,
     tile: string,
-    water: { xStart: number, xEnd: number, yStart: number, yEnd: number }[]
+    water: { xStart: number, xEnd: number, yStart: number, yEnd: number }[],
+    enemyPos: { x: number, y: number }[],
+    infoPos: { x: number, y: number }[]
 }

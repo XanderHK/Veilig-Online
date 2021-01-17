@@ -69,5 +69,7 @@
                 "questions" : [{"answer" : "NEE", "question" : "Je wordt op social media toegevoegd door een onbekend iemand. Voeg je diegene toe? "}, {"answer" : "NEE", "question" : "Je hebt een nieuwe computer gekocht. De fabrikant van de computer is vergeten om vooraf een  antivirusprogramma te installeren. Gebruik je de computer zonder antivirusprogramma?"}],
                 "background" : "winter",
                 "tile" : "wintertile",
+                "enemyPos" : [{"x" : 600, "y" : 500}, {"x" : 1850, "y" : 100}],
+                "infoPos" :  [{"x" : 0, "y" : 5}, {"x" : 0, "y" : 5}],
                 "spikes": [{ "xStart": 0, "xEnd": 1950, "yStart": 900, "yEnd": 1050 }]
 }

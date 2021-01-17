@@ -69,5 +69,6 @@
                 "questions" : [{"answer" : "NEE", "question" : "Je hebt een link ontvangen naar een Youtube filmpje en wilt deze graag bekijken; http://www.youttube.com/watch97fjgjsd97gjsdj25a"  }, {"answer" : "NEE", "question" : "SMS verificatie; Je krijgt van de bank waarbij je zit een SMS met een link erin.  Hierin wordt gevraagd om op de link te klikken, zodat je je bankpas kan laten vervangen. Klik je op de link? "}],
                 "background" : "Forest",
                 "tile" : "tile",
-                "info" : [{"xStart" : 50, "yStart" : 750}]
+          "enemyPos" : [{"x" : 1800, "y" : 200}, {"x" : 1450, "y" : 650}],
+                "infoPos" :  [{"x" : 0, "y" : 5}, {"x" : 0, "y" : 5}]
 }

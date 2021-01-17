@@ -69,8 +69,8 @@ abstract class MenuLogic extends Logic {
      * Method for moving the player on the screen
      */
     protected movePlayer() {
-        const maxBound = this.menuItems[this.menuItems.length - 1].xPos;
-        const minBound = this.menuItems[0].xPos;
+        const maxBound = Math.ceil(this.menuItems[this.menuItems.length - 1].xPos);
+        const minBound = Math.floor(this.menuItems[0].xPos);
         if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_RIGHT) && this.canJump.right && this.player.xPos <= maxBound) {
             this.canJump.right = false;
             const nextXPos = this.player.xPos + (this.repo.getImage("level1").width * 2);
