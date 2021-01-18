@@ -120,12 +120,12 @@ abstract class LevelLogic extends Logic {
  */
     private initializeInfo() {
         const infoSprite: HTMLImageElement = this.repo.getImage("info");
-        const info: { answer: string, question: string }[] = this.entries.find(entry => entry[0] === "questions")[1]
+        const info: { question: string }[] = this.entries.find(entry => entry[0] === "info")[1]
         const tempInfoArr: InfoObject[] = [];
         for (let i = 0; i < Game.AMOUNT_OF_INFO; i++) {
             const randomIndex: number = Math.floor(Math.random() * this.blocks.length);
             const randomSpawn: Block = this.blocks[randomIndex];
-            const newInfoObj: InfoObject = new InfoObject(randomSpawn.xPos, randomSpawn.yPos - randomSpawn.sprite.height, infoSprite, info[i].question, info[i].answer);
+            const newInfoObj: InfoObject = new InfoObject(randomSpawn.xPos, randomSpawn.yPos - randomSpawn.sprite.height, infoSprite, info[i].question);
             tempInfoArr.push(newInfoObj);
         }
         const retry: boolean = tempInfoArr.map(temp => {

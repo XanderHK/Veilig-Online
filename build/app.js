@@ -271,7 +271,7 @@ class LevelLogic extends Logic {
         this.initializeEntities();
         this.keyboardListener = new KeyboardListener();
         const playerSprites = Player.PLAYER_SPRITES.map((key) => this.repo.getImage(key));
-        this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 8, 10, playerSprites);
+        this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 6, 11, playerSprites);
     }
     initializeEntities() {
         this.initializePlatforms();
@@ -325,12 +325,12 @@ class LevelLogic extends Logic {
     }
     initializeInfo() {
         const infoSprite = this.repo.getImage("info");
-        const info = this.entries.find(entry => entry[0] === "questions")[1];
+        const info = this.entries.find(entry => entry[0] === "info")[1];
         const tempInfoArr = [];
         for (let i = 0; i < Game.AMOUNT_OF_INFO; i++) {
             const randomIndex = Math.floor(Math.random() * this.blocks.length);
             const randomSpawn = this.blocks[randomIndex];
-            const newInfoObj = new InfoObject(randomSpawn.xPos, randomSpawn.yPos - randomSpawn.sprite.height, infoSprite, info[i].question, info[i].answer);
+            const newInfoObj = new InfoObject(randomSpawn.xPos, randomSpawn.yPos - randomSpawn.sprite.height, infoSprite, info[i].question);
             tempInfoArr.push(newInfoObj);
         }
         const retry = tempInfoArr.map(temp => {
@@ -610,20 +610,14 @@ class LevelView extends LevelLogic {
     drawInfoScreen() {
         const result = this.interactsWithInfo();
         if (this.window && result !== undefined) {
-            const answer = result.answer;
             const question = result.question;
             const questionObj = new TextString(this.cx, this.cy + 50, question);
-            const answerObj = new TextString(this.cx, this.cy + 150, answer);
             questionObj.fontSize = 24;
-            answerObj.fontSize = 24;
             this.ctx.font = `${questionObj.fontSize}px ${questionObj.font}`;
-            const answerWidth = this.ctx.measureText(answer).width;
             const questionWidth = this.ctx.measureText(question).width;
-            const width = answerWidth >= questionWidth ? answerWidth : questionWidth;
             this.ctx.fillStyle = "white";
-            this.ctx.fillRect(this.cx - width, this.cy, width * 2, 200);
+            this.ctx.fillRect(this.cx - questionWidth, this.cy, questionWidth * 2, 200);
             questionObj.drawText(this.ctx);
-            answerObj.drawText(this.ctx);
         }
     }
     drawEnemyScreen() {
@@ -900,17 +894,13 @@ class Enemy extends GameEntity {
 }
 Enemy.SPRITES = ["enemy.png", "enemy2.png"];
 class InfoObject extends GameEntity {
-    constructor(x, y, sprite, question, answer) {
+    constructor(x, y, sprite, question) {
         super(x, y, 0, 0);
         this.img = sprite;
         this._question = question;
-        this._answer = answer;
     }
     get sprite() {
         return this.img;
-    }
-    get answer() {
-        return this._answer;
     }
     get question() {
         return this._question;
