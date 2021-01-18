@@ -7,6 +7,7 @@ abstract class Logic {
     private _cx: number;
     private _cy: number;
 
+
     /**
      * Constructs the logic object
      * @param {ImageLoader} repo 
