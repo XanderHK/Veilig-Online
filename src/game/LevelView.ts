@@ -120,24 +120,17 @@ class LevelView extends LevelLogic {
     private drawInfoScreen() {
         const result = this.interactsWithInfo();
         if (this.window && result !== undefined) {
-            const answer = result.answer
             const question = result.question;
             // todo add the textstring in the infoobject class same for enemy
             const questionObj: TextString = new TextString(this.cx, this.cy + 50, question)
-            const answerObj = new TextString(this.cx, this.cy + 150, answer)
             questionObj.fontSize = 24;
-            answerObj.fontSize = 24;
 
             this.ctx.font = `${questionObj.fontSize}px ${questionObj.font}`;
-            const answerWidth = this.ctx.measureText(answer).width;
             const questionWidth = this.ctx.measureText(question).width;
 
-            const width = answerWidth >= questionWidth ? answerWidth : questionWidth;
-
             this.ctx.fillStyle = "white";
-            this.ctx.fillRect(this.cx - width, this.cy, width * 2, 200)
+            this.ctx.fillRect(this.cx - questionWidth, this.cy, questionWidth * 2, 200)
             questionObj.drawText(this.ctx);
-            answerObj.drawText(this.ctx);
         }
     }
 

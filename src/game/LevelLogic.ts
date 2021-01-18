@@ -38,7 +38,7 @@ abstract class LevelLogic extends Logic {
         this.initializeEntities();
         this.keyboardListener = new KeyboardListener();
         const playerSprites: HTMLImageElement[] = Player.PLAYER_SPRITES.map((key: string) => this.repo.getImage(key))
-        this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 8, 10, playerSprites);
+        this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 6, 11, playerSprites);
     }
 
 
@@ -120,12 +120,12 @@ abstract class LevelLogic extends Logic {
  */
     private initializeInfo() {
         const infoSprite: HTMLImageElement = this.repo.getImage("info");
-        const info: { answer: string, question: string }[] = this.entries.find(entry => entry[0] === "questions")[1]
+        const info: { question: string }[] = this.entries.find(entry => entry[0] === "info")[1]
         const tempInfoArr: InfoObject[] = [];
         for (let i = 0; i < Game.AMOUNT_OF_INFO; i++) {
             const randomIndex: number = Math.floor(Math.random() * this.blocks.length);
             const randomSpawn: Block = this.blocks[randomIndex];
-            const newInfoObj: InfoObject = new InfoObject(randomSpawn.xPos, randomSpawn.yPos - randomSpawn.sprite.height, infoSprite, info[i].question, info[i].answer);
+            const newInfoObj: InfoObject = new InfoObject(randomSpawn.xPos, randomSpawn.yPos - randomSpawn.sprite.height, infoSprite, info[i].question);
             tempInfoArr.push(newInfoObj);
         }
         const retry: boolean = tempInfoArr.map(temp => {

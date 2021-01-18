@@ -67,6 +67,7 @@
                 ],
                 "spikes": [{ "xStart": 0, "xEnd": 1950, "yStart": 900, "yEnd": 1050 }],
                 "questions" : [{"answer" : "NEE", "question" : "Je hebt een link ontvangen naar een Youtube filmpje en wilt deze graag bekijken; http://www.youttube.com/watch97fjgjsd97gjsdj25a"  }, {"answer" : "NEE", "question" : "SMS verificatie; Je krijgt van de bank waarbij je zit een SMS met een link erin.  Hierin wordt gevraagd om op de link te klikken, zodat je je bankpas kan laten vervangen. Klik je op de link? "}],
+                 "info" : [{"question" : "Controleer de link goed voordat je erop drukt. Tegenwoordig worden nep linkjes gebruikt!" }, { "question" : "Klik nooit op een linkje in een sms. Helemaal niet als je niet zeker weet of dit naar een officiële website leidt."}],
                 "background" : "Forest",
                 "tile" : "tile",
           "enemyPos" : [{"x" : 1800, "y" : 200}, {"x" : 1450, "y" : 650}],

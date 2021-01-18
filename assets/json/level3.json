@@ -82,6 +82,7 @@
            
                 ],
                 "questions" : [{"answer" : "NEE", "question" : "Je moet op een website een nieuw account aanmaken. Je gebruikt het wachtwoord 'Welkom123' Is dit een goed wachtwoord?"  }, {"answer" : "NEE", "question" : "Je bent op een treinstation aan het wachten en besluit om gebruik te maken van het open wifinetwerk FrEe WifI HeRe, Maak je verbinding met het wifi netwerk?"}],
+                "info" : [{"question" : "Het is belangrijk om wachtwoorden te gebruiken die moeilijk te raden zijn"  }, { "question" : "Bij openbare en onbeveiligde wifinetwerken kunnen anderen mogelijk zien wat je op het internet doet en welke gegevens je verstuurt."}],
                 "background" : "lava",
                 "tile" : "lavatile",
                 "spikes": [{ "xStart": 0, "xEnd": 1950, "yStart": 900, "yEnd": 1050 }],

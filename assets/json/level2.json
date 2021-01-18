@@ -67,6 +67,7 @@
                
                 ],
                 "questions" : [{"answer" : "NEE", "question" : "Je wordt op social media toegevoegd door een onbekend iemand. Voeg je diegene toe? "}, {"answer" : "NEE", "question" : "Je hebt een nieuwe computer gekocht. De fabrikant van de computer is vergeten om vooraf een  antivirusprogramma te installeren. Gebruik je de computer zonder antivirusprogramma?"}],
+                "info" : [{"question" : "Accepteer niet zomaar alle vriendschapsverzoeken op social media."  }, {"question" : "Hebben van een goede antivirusprogramma kan het verschil tussen het leven en de dood van jouw computer zijn!"}],
                 "background" : "winter",
                 "tile" : "wintertile",
                 "enemyPos" : [{"x" : 600, "y" : 500}, {"x" : 1850, "y" : 100}],
