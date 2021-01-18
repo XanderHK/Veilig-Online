@@ -39,7 +39,8 @@ class Player extends GameEntity {
      * increments the ypos of the player resulting in it moving downwards on the canvas
      */
     public gravity() {
-        this.yPos += this.velocityY / 2;
+       
+        this.yPos += this.velocityY / 2
     }
 
     /**

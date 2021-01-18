@@ -203,7 +203,7 @@ class LevelLogic extends Logic {
         this.initializeEntities();
         this.keyboardListener = new KeyboardListener();
         const playerSprites = Player.PLAYER_SPRITES.map((key) => this.repo.getImage(key));
-        this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 8, 10, playerSprites);
+        this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 6, 11, playerSprites);
         console.log(this.player.velocityX);
     }
     initializeEntities() {
@@ -342,6 +342,9 @@ class LevelLogic extends Logic {
     hitsBottom() {
         return this.player.yPos + this.repo.getImage("main_char_1").height >= this.height;
     }
+    hitsSide() {
+        return this.player.xPos + this.repo.getImage("main_char_1").width <= -30;
+    }
     makePlayerJump() {
         const timeIntervalInFrames = window.fps / 2;
         if (this.lastFrameAfterJump === undefined || this.frames > this.lastFrameAfterJump + timeIntervalInFrames) {
@@ -361,7 +364,7 @@ class LevelLogic extends Logic {
     }
     makePlayerFall(collidesWithStandableSide) {
         if (!collidesWithStandableSide) {
-            if (!this.hitsBottom()) {
+            if (!this.hitsBottom() && !this.hitsSide()) {
                 this.player.gravity();
             }
             else {

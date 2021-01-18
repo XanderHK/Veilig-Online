@@ -37,7 +37,7 @@ abstract class LevelLogic extends Logic {
         this.initializeEntities();
         this.keyboardListener = new KeyboardListener();
         const playerSprites: HTMLImageElement[] = Player.PLAYER_SPRITES.map((key: string) => this.repo.getImage(key))
-        this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 8, 10, playerSprites);
+        this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 6, 11, playerSprites);
         console.log(this.player.velocityX)
 
     }
@@ -236,6 +236,10 @@ abstract class LevelLogic extends Logic {
         return this.player.yPos + this.repo.getImage("main_char_1").height >= this.height;
     }
 
+    private hitsSide(){
+        return this.player.xPos + this.repo.getImage("main_char_1").width <= -30;
+    }
+
     /**
      * Method that makes the player jump and delays the next jump
      */
@@ -266,7 +270,7 @@ abstract class LevelLogic extends Logic {
      */
     private makePlayerFall(collidesWithStandableSide: boolean) {
         if (!collidesWithStandableSide) {
-            if (!this.hitsBottom()) {
+            if (!this.hitsBottom()&&!this.hitsSide()) {
                 this.player.gravity();
             } else {
                 this._lives--;
