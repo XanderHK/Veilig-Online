@@ -38,7 +38,7 @@ abstract class LevelLogic extends Logic {
         this.initializeEntities();
         this.keyboardListener = new KeyboardListener();
         const playerSprites: HTMLImageElement[] = Player.PLAYER_SPRITES.map((key: string) => this.repo.getImage(key))
-        this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 6, 11, playerSprites);
+        this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 8, 12, playerSprites);
     }
 
 
@@ -246,6 +246,7 @@ abstract class LevelLogic extends Logic {
                 this.player.jump();
             }
         } else if (this.frames < this.lastFrameAfterJump + timeIntervalInFrames / 3) {
+            //Todo this fucks up the climbing feature
             if (collidesWithNoneStandableSide[0] !== CollisionState.Bottom) {
                 this.player.jump();
             }

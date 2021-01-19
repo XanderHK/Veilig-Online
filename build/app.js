@@ -271,7 +271,7 @@ class LevelLogic extends Logic {
         this.initializeEntities();
         this.keyboardListener = new KeyboardListener();
         const playerSprites = Player.PLAYER_SPRITES.map((key) => this.repo.getImage(key));
-        this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 6, 11, playerSprites);
+        this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 8, 12, playerSprites);
     }
     initializeEntities() {
         this.initializePlatforms();
@@ -931,7 +931,7 @@ class Player extends GameEntity {
         this.xPos = nextXPos;
     }
     jump() {
-        this.yPos -= this.velocityY;
+        this.yPos -= (this.velocityY);
     }
     gravity() {
         this.yPos += this.velocityY / 2;
