@@ -246,9 +246,9 @@ abstract class LevelLogic extends Logic {
                 this.player.jump();
             }
         } else if (this.frames < this.lastFrameAfterJump + timeIntervalInFrames / 3) {
-            if (collidesWithNoneStandableSide[0] !== CollisionState.Bottom) {
-                this.player.jump();
-            }
+            // if (collidesWithNoneStandableSide[0] !== CollisionState.Bottom) {
+            this.player.jump();
+            // }
         }
     }
 
