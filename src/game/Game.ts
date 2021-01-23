@@ -227,7 +227,8 @@ class Game {
          Druk op Q om het dialoogvenster te sluiten.
          Beantwoordt de vragen van de vijand door op A of B te drukken.
          Beweeg het poppetje door middel van de <- of -> toets.
-         Laat het poppetje springen door op pijl omhoog toets te drukken.`;
+         Laat het poppetje springen door op pijl omhoog toets te drukken.
+         Druk aan de zijkant van een block op de SPACEBAR om jezelf vasthouden, vervolgens kan je klimmen door op het pijltje omhoog te drukken.`;
         const textArr = text.split("\n");
         const startHeight = (this.canvas.height / 2) - ((textArr.length / 2) * spaceBetween)
         textArr.reduce((a: number, r: string) => {
@@ -244,7 +245,10 @@ class Game {
         if (this.keyListener.isKeyDown(KeyboardListener.KEY_ESCAPE)) {
             this.gamestate = GameState.Main
         }
-        this.instructionTexts.forEach((text: TextString) => text.drawText(this.ctx))
+        this.instructionTexts.forEach((text: TextString) => {
+            text.fontSize = Calculate.calculateX(24);
+            text.drawText(this.ctx)
+        })
     }
 
     /**

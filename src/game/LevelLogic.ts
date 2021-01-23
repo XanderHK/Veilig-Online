@@ -8,6 +8,7 @@ abstract class LevelLogic extends Logic {
     private _score: number = 0;
     private _lives: number = Game.AMOUNT_OF_LIVES;
     private _name: string;
+    private jump: boolean = true;
 
 
     protected blocks: Block[] = []
@@ -180,7 +181,7 @@ abstract class LevelLogic extends Logic {
     /**
      * Method that checks if the player is colliding with any side besides the top of the block
      */
-    private collidesWithLeftRightOrBottom(): (boolean | CollisionState)[] {
+    private collidesWithLeftRightOrBottom(): (CollisionState | boolean)[] {
         const side = this.blocks.map(block => {
             return this.collidesWithSide(this.player, block);
         }).find(side => side === CollisionState.Bottom || side === CollisionState.Left || side === CollisionState.Right)
@@ -238,17 +239,17 @@ abstract class LevelLogic extends Logic {
     /**
      * Method that makes the player jump and delays the next jump
      */
-    private makePlayerJump(collidesWithNoneStandableSide: (boolean | CollisionState)[]) {
+    private makePlayerJump() {
         const timeIntervalInFrames = window.fps / 2;
-        if (this.lastFrameAfterJump === undefined || this.frames > this.lastFrameAfterJump + timeIntervalInFrames) {
+        if (this.lastFrameAfterJump === undefined || this.frames > this.lastFrameAfterJump + timeIntervalInFrames && this.jump) {
             if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_UP) && this.player.xPos > 0) {
                 this.lastFrameAfterJump = this.frames;
                 this.player.jump();
             }
-        } else if (this.frames < this.lastFrameAfterJump + timeIntervalInFrames / 3) {
-            // if (collidesWithNoneStandableSide[0] !== CollisionState.Bottom) {
-            this.player.jump();
-            // }
+        } else if (this.frames <= this.lastFrameAfterJump + timeIntervalInFrames / 3) {
+            if (this.collidesWithLeftRightOrBottom()[0] !== CollisionState.Bottom) {
+                this.player.jump();
+            }
         }
     }
 
@@ -275,15 +276,16 @@ abstract class LevelLogic extends Logic {
     private makePlayerFall(collidesWithStandableSide: boolean) {
         if (!collidesWithStandableSide) {
             if (!this.hitsBottom() && !this.hitsSide()) {
-                this.player.gravity();
+                this.player.enableGravity();
                 this.putPlayerOnTop();
-            } else {
+            } else if (this.hitsBottom()) {
                 this._lives--;
                 this.player.xPos = this.blocks[0].xPos + this.repo.getImage("main_char_1").width;
                 this.player.yPos = this.blocks[0].yPos - this.repo.getImage("main_char_1").height;
             }
         }
     }
+
     /**
      * Method to put the player ontop of the block after falling (mainly necessary for resolutions lower than 1920)
      */
@@ -322,10 +324,36 @@ abstract class LevelLogic extends Logic {
         }
     }
 
+    /** 
+     * Makes the player able to hold on to the side of a block and enables him to climb
+     * @param {CollisionState} side 
+     */
+    private playerHoldOn(side: CollisionState) {
+        if ((side === CollisionState.Left || side === CollisionState.Right) && this.keyboardListener.isKeyDown(KeyboardListener.KEY_SPACE)) {
+            if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_UP)) {
+                this.jump = false;
+                this.playerClimb();
+            } else {
+                this.jump = true;
+            }
+            this.player.stop();
+        } else {
+            this.jump = true;
+        }
+    }
+
+    /**
+     * Calls the climb method
+     */
+    private playerClimb() {
+        this.player.climb();
+    }
+
     /**
    * Bundle method that invokes every player movement related method
    */
     private playerActions() {
+        this.putPlayerOnTop();
         const collidesWithStandableSide: boolean = this.collidesWithTopOfBlock();
         const collidesWithNoneStandableSide = this.collidesWithLeftRightOrBottom();
         this.collidesWithCoin();
@@ -333,7 +361,8 @@ abstract class LevelLogic extends Logic {
         this.movePlayerLeft(collidesWithNoneStandableSide);
         this.makePlayerFall(collidesWithStandableSide);
         this.idlePlayer();
-        this.makePlayerJump(collidesWithNoneStandableSide);
+        this.playerHoldOn(collidesWithNoneStandableSide[0] as CollisionState);
+        this.makePlayerJump();
     }
 
     /**
