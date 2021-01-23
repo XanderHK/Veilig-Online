@@ -5,7 +5,7 @@ class Player extends GameEntity {
         `run-right1.png`, `run-right2.png`, `run-right3.png`, `run-right4.png`, `run-right5.png`, `run-right6.png`];
 
     private images: HTMLImageElement[];
-
+    private _gravity: number;
 
     /**
      * Constructs the player
@@ -18,6 +18,7 @@ class Player extends GameEntity {
     public constructor(x: number, y: number, velocityX: number, velocityY: number, sprites: HTMLImageElement[]) {
         super(x, y, velocityX, velocityY);
         this.images = sprites;
+        this._gravity = this.velocityY / 2;
     }
 
     /**
@@ -34,14 +35,14 @@ class Player extends GameEntity {
      * decrements the ypos of the player resulting in it moving upwards on the canvas
      */
     public jump() {
-        this.yPos -= (this.velocityY);
+        this.yPos -= (this.velocityY + 1);
     }
 
     /**
      * increments the ypos of the player resulting in it moving downwards on the canvas
      */
-    public gravity() {
-        this.yPos += this.velocityY / 2;
+    public enableGravity() {
+        this.yPos += this._gravity
     }
 
     /**
@@ -56,6 +57,20 @@ class Player extends GameEntity {
      */
     public get sprite(): HTMLImageElement {
         return this.images[0];
+    }
+
+    /**
+     * Stops the gravity
+     */
+    public stop() {
+        this.yPos -= this._gravity;
+    }
+
+    /**
+     * Climbs
+     */
+    public climb() {
+        this.yPos -= this._gravity;
     }
 
     /**

@@ -174,7 +174,8 @@ class Game {
          Druk op Q om het dialoogvenster te sluiten.
          Beantwoordt de vragen van de vijand door op A of B te drukken.
          Beweeg het poppetje door middel van de <- of -> toets.
-         Laat het poppetje springen door op pijl omhoog toets te drukken.`;
+         Laat het poppetje springen door op pijl omhoog toets te drukken.
+         Druk aan de zijkant van een block op de SPACEBAR om jezelf vasthouden, vervolgens kan je klimmen door op het pijltje omhoog te drukken.`;
         const textArr = text.split("\n");
         const startHeight = (this.canvas.height / 2) - ((textArr.length / 2) * spaceBetween);
         textArr.reduce((a, r) => {
@@ -187,7 +188,10 @@ class Game {
         if (this.keyListener.isKeyDown(KeyboardListener.KEY_ESCAPE)) {
             this.gamestate = GameState.Main;
         }
-        this.instructionTexts.forEach((text) => text.drawText(this.ctx));
+        this.instructionTexts.forEach((text) => {
+            text.fontSize = Calculate.calculateX(24);
+            text.drawText(this.ctx);
+        });
     }
     restart() {
         if (this.gamestate === GameState.GameBeaten && this.keyListener.isKeyDown(KeyboardListener.KEY_R)) {
@@ -258,6 +262,7 @@ class LevelLogic extends Logic {
         this.currentEnemyImgIndex = { state: 0 };
         this._score = 0;
         this._lives = Game.AMOUNT_OF_LIVES;
+        this.jump = true;
         this.blocks = [];
         this.water = [];
         this.coins = [];
@@ -271,7 +276,7 @@ class LevelLogic extends Logic {
         this.initializeEntities();
         this.keyboardListener = new KeyboardListener();
         const playerSprites = Player.PLAYER_SPRITES.map((key) => this.repo.getImage(key));
-        this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 8, 12, playerSprites);
+        this.player = new Player(this.blocks[0].xPos, this.blocks[0].yPos - this.repo.getImage("main_char_1").height, 6, 11, playerSprites);
     }
     initializeEntities() {
         this.initializePlatforms();
@@ -405,16 +410,16 @@ class LevelLogic extends Logic {
     hitsBottom() {
         return this.player.yPos + this.repo.getImage("main_char_1").height >= this.height;
     }
-    makePlayerJump(collidesWithNoneStandableSide) {
+    makePlayerJump() {
         const timeIntervalInFrames = window.fps / 2;
-        if (this.lastFrameAfterJump === undefined || this.frames > this.lastFrameAfterJump + timeIntervalInFrames) {
+        if (this.lastFrameAfterJump === undefined || this.frames > this.lastFrameAfterJump + timeIntervalInFrames && this.jump) {
             if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_UP) && this.player.xPos > 0) {
                 this.lastFrameAfterJump = this.frames;
                 this.player.jump();
             }
         }
-        else if (this.frames < this.lastFrameAfterJump + timeIntervalInFrames / 3) {
-            if (collidesWithNoneStandableSide[0] !== CollisionState.Bottom) {
+        else if (this.frames <= this.lastFrameAfterJump + timeIntervalInFrames / 3) {
+            if (this.collidesWithLeftRightOrBottom()[0] !== CollisionState.Bottom) {
                 this.player.jump();
             }
         }
@@ -430,10 +435,10 @@ class LevelLogic extends Logic {
     makePlayerFall(collidesWithStandableSide) {
         if (!collidesWithStandableSide) {
             if (!this.hitsBottom() && !this.hitsSide()) {
-                this.player.gravity();
+                this.player.enableGravity();
                 this.putPlayerOnTop();
             }
-            else {
+            else if (this.hitsBottom()) {
                 this._lives--;
                 this.player.xPos = this.blocks[0].xPos + this.repo.getImage("main_char_1").width;
                 this.player.yPos = this.blocks[0].yPos - this.repo.getImage("main_char_1").height;
@@ -463,7 +468,26 @@ class LevelLogic extends Logic {
             }
         }
     }
+    playerHoldOn(side) {
+        if ((side === CollisionState.Left || side === CollisionState.Right) && this.keyboardListener.isKeyDown(KeyboardListener.KEY_SPACE)) {
+            if (this.keyboardListener.isKeyDown(KeyboardListener.KEY_UP)) {
+                this.jump = false;
+                this.playerClimb();
+            }
+            else {
+                this.jump = true;
+            }
+            this.player.stop();
+        }
+        else {
+            this.jump = true;
+        }
+    }
+    playerClimb() {
+        this.player.climb();
+    }
     playerActions() {
+        this.putPlayerOnTop();
         const collidesWithStandableSide = this.collidesWithTopOfBlock();
         const collidesWithNoneStandableSide = this.collidesWithLeftRightOrBottom();
         this.collidesWithCoin();
@@ -471,7 +495,8 @@ class LevelLogic extends Logic {
         this.movePlayerLeft(collidesWithNoneStandableSide);
         this.makePlayerFall(collidesWithStandableSide);
         this.idlePlayer();
-        this.makePlayerJump(collidesWithNoneStandableSide);
+        this.playerHoldOn(collidesWithNoneStandableSide[0]);
+        this.makePlayerJump();
     }
     interactsWithInfo() {
         const result = this.fullCollision(this.infoObjects, this.player);
@@ -925,22 +950,29 @@ class Player extends GameEntity {
     constructor(x, y, velocityX, velocityY, sprites) {
         super(x, y, velocityX, velocityY);
         this.images = sprites;
+        this._gravity = this.velocityY / 2;
     }
     move(direction) {
         const nextXPos = this.xPos + (direction ? this.velocityX : -this.velocityX);
         this.xPos = nextXPos;
     }
     jump() {
-        this.yPos -= (this.velocityY);
+        this.yPos -= (this.velocityY + 1);
     }
-    gravity() {
-        this.yPos += this.velocityY / 2;
+    enableGravity() {
+        this.yPos += this._gravity;
     }
     get sprites() {
         return this.images;
     }
     get sprite() {
         return this.images[0];
+    }
+    stop() {
+        this.yPos -= this._gravity;
+    }
+    climb() {
+        this.yPos -= this._gravity;
     }
     draw(ctx, state) {
         ctx.drawImage(this.images[state], this.xPos, this.yPos, this.images[state].width, this.images[state].height);
