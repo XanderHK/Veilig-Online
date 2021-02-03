@@ -2,7 +2,7 @@
  * Main class of this Game.
  */
 class Game {
-    public static readonly IMGGGGG = "DDDDDD";
+    public static readonly IMGGGG = "DDDDDD";
     // Class constants
     public static readonly IMG_PATH = "./assets/img/";
     public static readonly AUDIO_PATH = "./assets/audio/";
